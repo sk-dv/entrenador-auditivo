@@ -20,7 +20,8 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('aprender')">① Aprender</button>
             <button class="tab-btn" onclick="switchTab('explorar')">② Explorar</button>
-            <button class="tab-btn" onclick="switchTab('practicar')">③ Practicar</button>
+            <button class="tab-btn" onclick="switchTab('practicar')">③ Inversiones</button>
+            <button class="tab-btn" onclick="switchTab('grados')">④ Grados</button>
         </div>
 
         <!-- ══════════════════════════════════════════
@@ -135,43 +136,25 @@
                     <button class="filter-btn" onclick="setFilter('mayor',this)">Mayor</button>
                     <button class="filter-btn" onclick="setFilter('menor',this)">Menor</button>
                 </div>
+                <div class="filter-row" id="rootFilterRow">
+                    <span class="filter-label">raíz:</span>
+                    <button class="filter-btn root-filter-btn f-active" onclick="setRootFilter('all',this)">Todas</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Do',this)">Do</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Do#',this)">Do#</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Re',this)">Re</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Mib',this)">Mib</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Mi',this)">Mi</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Fa',this)">Fa</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Fa#',this)">Fa#</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Sol',this)">Sol</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Lab',this)">Lab</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('La',this)">La</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Sib',this)">Sib</button>
+                    <button class="filter-btn root-filter-btn" onclick="setRootFilter('Si',this)">Si</button>
+                </div>
 
                 <div class="chord-tiles" id="chordTiles"></div>
 
-                <div class="detail-drawer" id="detailDrawer">
-                    <div class="dd-name" id="ddName">—</div>
-                    <div class="dd-flavour" id="ddFlavour">—</div>
-                    <div class="dd-grid">
-                        <div class="dd-box">
-                            <div class="dd-box-label">Posición</div>
-                            <div class="dd-box-val" id="ddType">—</div>
-                        </div>
-                        <div class="dd-box">
-                            <div class="dd-box-label">Color</div>
-                            <div class="dd-box-val" id="ddColor">—</div>
-                        </div>
-                        <div class="dd-box">
-                            <div class="dd-box-label">Nota en el bajo</div>
-                            <div class="dd-box-val" id="ddBass">—</div>
-                        </div>
-                        <div class="dd-box">
-                            <div class="dd-box-label">Notas del acorde</div>
-                            <div class="dd-box-val" id="ddNotes">—</div>
-                        </div>
-                    </div>
-                    <table class="dd-int-table">
-                        <thead>
-                            <tr>
-                                <th>Movimiento</th>
-                                <th>Nota destino</th>
-                                <th>Intervalo</th>
-                                <th>Semitonos</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ddIntBody"></tbody>
-                    </table>
-                    <button class="dd-close" onclick="closeDrawer()">✕ cerrar</button>
-                </div>
             </div>
         </div>
 
@@ -203,6 +186,11 @@
                 <div class="play-zone">
                     <button class="big-play-btn" id="playBtn" onclick="startRound()">▶</button>
                     <div class="play-hint" id="playHint">toca para escuchar un acorde</div>
+                    <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                        <span class="mode-label">reproducción:</span>
+                        <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                        <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                    </div>
                     <button class="repeat-btn" id="repeatBtn" onclick="repeatChord()" disabled>↺ repetir</button>
                 </div>
 
@@ -305,10 +293,160 @@
                     <div class="score-val" id="totalScore">0/0</div>
                 </div>
             </div>
+            <div class="hist-bar" id="hist-inversiones"></div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+     TAB 4 — GRADOS TONALES
+══════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-grados">
+
+            <!-- Sub-mode selector -->
+            <div class="grados-mode-selector">
+                <button class="gm-btn gm-active" id="gmGrados" onclick="switchGradosMode('grados')">Grados solos</button>
+                <button class="gm-btn" id="gmProg" onclick="switchGradosMode('progresiones')">Progresiones</button>
+            </div>
+
+            <!-- ── GRADOS SECTION ── -->
+            <div id="gradosSection">
+
+                <span class="sec-label">Los 5 grados diatónicos de Do Mayor — su función y color</span>
+                <div class="deg-ref-grid" id="degRefGrid"></div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="degPlayBtn" onclick="startDegreeRound()">▶</button>
+                        <div class="play-hint" id="degPlayHint">toca para escuchar un grado tonal</div>
+                        <div class="deg-context-hint">
+                            escucharás: <strong>Do Mayor</strong> (contexto) → <strong>acorde misterio</strong>
+                        </div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="degRepeatBtn" onclick="repeatDegree()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="deg-btn-grid" id="degBtnGrid"></div>
+
+                    <div class="reveal-panel" id="degRevealPanel">
+                        <div class="rev-name" id="degRevTitle">—</div>
+                        <span class="deg-rev-quality" id="degRevQuality">—</span>
+                        <div class="rev-sub" id="degRevFeeling">—</div>
+                        <div class="deg-rev-desc" id="degRevDesc">—</div>
+                        <div class="deg-rev-prog" id="degRevProg">—</div>
+                        <button class="next-btn" onclick="startDegreeRound()">→ siguiente grado</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="degRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="degScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-grados"></div>
+
+            </div><!-- end #gradosSection -->
+
+            <!-- ── PROGRESIONES SECTION ── -->
+            <div id="progresionesSection" style="display:none">
+
+                <span class="sec-label">Progresiones armónicas de Do Mayor — escucha y reconoce</span>
+                <div class="prog-ref-grid" id="progRefGrid"></div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="progPlayBtn" onclick="startProgRound()">▶</button>
+                        <div class="play-hint" id="progPlayHint">toca para escuchar una progresión</div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="progRepeatBtn" onclick="repeatProg()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="prog-slots-area">
+                        <div class="prog-slots-hint">identifica cada acorde en orden</div>
+                        <div class="prog-slots" id="progSlots"></div>
+                    </div>
+
+                    <div class="deg-btn-grid" id="progBtnGrid"></div>
+
+                    <div class="reveal-panel" id="progRevealPanel">
+                        <div class="rev-name" id="progRevTitle">—</div>
+                        <div class="prog-rev-chords" id="progRevChords">—</div>
+                        <div class="rev-sub" id="progRevFeeling">—</div>
+                        <div class="deg-rev-desc" id="progRevDesc">—</div>
+                        <div class="prog-rev-songs" id="progRevSongs"></div>
+                        <button class="next-btn" onclick="startProgRound()">→ siguiente progresión</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="progRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="progScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-progresiones"></div>
+
+            </div><!-- end #progresionesSection -->
 
         </div>
 
     </div><!-- end .wrap -->
+
+    <!-- Modal de detalle de acorde (Explorer) -->
+    <div class="chord-modal-bg" id="chordModalBg" onclick="closeDrawer()">
+        <div class="chord-modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeDrawer()">✕</button>
+            <div class="dd-name" id="ddName">—</div>
+            <div class="dd-flavour" id="ddFlavour">—</div>
+            <div class="dd-grid">
+                <div class="dd-box">
+                    <div class="dd-box-label">Posición</div>
+                    <div class="dd-box-val" id="ddType">—</div>
+                </div>
+                <div class="dd-box">
+                    <div class="dd-box-label">Color</div>
+                    <div class="dd-box-val" id="ddColor">—</div>
+                </div>
+                <div class="dd-box">
+                    <div class="dd-box-label">Nota en el bajo</div>
+                    <div class="dd-box-val" id="ddBass">—</div>
+                </div>
+                <div class="dd-box">
+                    <div class="dd-box-label">Notas del acorde</div>
+                    <div class="dd-box-val" id="ddNotes">—</div>
+                </div>
+            </div>
+            <table class="dd-int-table">
+                <thead>
+                    <tr>
+                        <th>Movimiento</th>
+                        <th>Nota destino</th>
+                        <th>Intervalo</th>
+                        <th>Semitonos</th>
+                    </tr>
+                </thead>
+                <tbody id="ddIntBody"></tbody>
+            </table>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

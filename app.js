@@ -1,6 +1,6 @@
 // ─── TAB ─────────────────────────────────────────────────────────
 function switchTab(name) {
-    ['aprender', 'explorar', 'practicar'].forEach((n, i) => {
+    ['aprender', 'explorar', 'practicar', 'grados'].forEach((n, i) => {
         document.querySelectorAll('.tab-btn')[i].classList.toggle('active', n === name);
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
@@ -9,186 +9,143 @@ function switchTab(name) {
 // ─── AUDIO ───────────────────────────────────────────────────────
 const AC = window.AudioContext || window.webkitAudioContext;
 let ac;
-function ctx() { if (!ac) ac = new AC(); if (ac.state === 'suspended') ac.resume(); return ac; }
+let masterOut = null;
+let masterGain = null;
+let activeNodes = [];
+
+function ctx() {
+    if (!ac) {
+        ac = new AC();
+        const lim = ac.createDynamicsCompressor();
+        lim.threshold.value = -3;
+        lim.knee.value = 0;
+        lim.ratio.value = 20;
+        lim.attack.value = 0.001;
+        lim.release.value = 0.05;
+        lim.connect(ac.destination);
+
+        const comp = ac.createDynamicsCompressor();
+        comp.threshold.value = -24;
+        comp.knee.value = 12;
+        comp.ratio.value = 4;
+        comp.attack.value = 0.005;
+        comp.release.value = 0.2;
+
+        masterGain = ac.createGain();
+        masterGain.gain.value = 1;
+        comp.connect(masterGain);
+        masterGain.connect(lim);
+        masterOut = comp;
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+}
+
+function stopAllNodes() {
+    // Silencia instantáneamente todo el grafo de audio
+    if (masterGain && ac) {
+        masterGain.gain.cancelScheduledValues(ac.currentTime);
+        masterGain.gain.setValueAtTime(0, ac.currentTime);
+        masterGain.gain.linearRampToValueAtTime(1, ac.currentTime + 0.02);
+    }
+    activeNodes.forEach(n => {
+        try { n.disconnect(); } catch(e) {}
+        try { n.stop(0); }    catch(e) {}
+    });
+    activeNodes = [];
+}
+
 function mfreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
 function playNote(midi, start, dur) {
     const a = ctx(), o = a.createOscillator(), g = a.createGain();
-    const o2 = a.createOscillator(), g2 = a.createGain();
-    o.type = 'triangle'; o.frequency.value = mfreq(midi);
-    o2.type = 'sine'; o2.frequency.value = mfreq(midi) * 2; g2.gain.value = 0.06;
-    o2.connect(g2); g2.connect(a.destination); o2.start(start); o2.stop(start + dur + 0.1);
+    o.type = 'sine';
+    o.frequency.value = mfreq(midi);
     g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(0.26, start + 0.025);
+    g.gain.linearRampToValueAtTime(0.22, start + 0.04);
+    g.gain.setValueAtTime(0.22, start + 0.1);
     g.gain.exponentialRampToValueAtTime(0.001, start + dur);
-    o.connect(g); g.connect(a.destination); o.start(start); o.stop(start + dur + 0.1);
+    o.connect(g); g.connect(masterOut);
+    o.start(start); o.stop(start + dur + 0.1);
+    activeNodes.push(o, g);
 }
-function playChord(midis, arp) {
+
+// arpInterval = 0 → simultáneo; > 0 → tiempo entre notas (arpegio)
+function playChord(midis, arpInterval) {
+    stopAllNodes();
     const a = ctx(), now = a.currentTime + 0.05;
-    midis.forEach((m, i) => playNote(m, now + (arp ? i * 0.1 : 0), 1.8));
+    midis.forEach((m, i) => playNote(m, now + (arpInterval ? i * arpInterval : 0), 1.8));
 }
 
-// ─── CHORD DATA ───────────────────────────────────────────────────
-const CHORDS = [
-    // C
-    {
-        id: 'C_inv2', name: 'Do Mayor', degree: 'I⁶₄', quality: 'mayor', type: 'segunda',
-        notes: ['Sol', 'Do', 'Mi'], midis: [43, 48, 52], bassNote: 'Sol', bassRole: '5ª',
-        int1: '4ª Justa (5 st)', int2: '6ª Mayor (9 st)', intKey: 'inv2-int',
-        color: 'Tenso · suspendido · exponencializa',
-        flavour: 'C en 2ª inv. Bajo en Sol crea tensión máxima sobre la tónica. Pide resolución.'
-    },
-    {
-        id: 'C_fund', name: 'Do Mayor', degree: 'I', quality: 'mayor', type: 'fundamental',
-        notes: ['Do', 'Mi', 'Sol'], midis: [48, 52, 55], bassNote: 'Do', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · sólido · conclusivo',
-        flavour: 'Tónica en fundamental. El estado de reposo absoluto en Do Mayor.'
-    },
-    {
-        id: 'C_inv1', name: 'Do Mayor', degree: 'I⁶', quality: 'mayor', type: 'primera',
-        notes: ['Mi', 'Sol', 'Do'], midis: [52, 55, 60], bassNote: 'Mi', bassRole: '3ª',
-        int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)', intKey: 'inv1-int',
-        color: 'Suave · fluido · atenúa',
-        flavour: 'C en 1ª inv. Bajo en Mi alivia el peso de la tónica. Elegante.'
-    },
+// ─── CHORD DATA — INVERSIONES ─────────────────────────────────────
+const NOTAS = ['Do', 'Do#', 'Re', 'Mib', 'Mi', 'Fa', 'Fa#', 'Sol', 'Lab', 'La', 'Sib', 'Si'];
+const BASE_MIDI = 48; // Do3
 
-    // Dm
-    {
-        id: 'Dm_inv1', name: 'Re menor', degree: 'II⁶', quality: 'menor', type: 'primera',
-        notes: ['Fa', 'La', 'Re'], midis: [53, 57, 62], bassNote: 'Fa', bassRole: '3ª',
-        int1: '3ª Mayor (4 st)', int2: '6ª menor (8 st)', intKey: 'inv1-int',
-        color: 'Suave · atenúa · predomínante ligero',
-        flavour: 'Dm en 1ª inv. El bajo en Fa suaviza el oscuro Re menor. Clásico antes del V.'
-    },
-    {
-        id: 'Dm_fund', name: 'Re menor', degree: 'II', quality: 'menor', type: 'fundamental',
-        notes: ['Re', 'Fa', 'La'], midis: [50, 53, 57], bassNote: 'Re', bassRole: 'raíz',
-        int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · oscuro · peso completo',
-        flavour: 'Re menor en fundamental. Oscuro y estable.'
-    },
+function generarAcordes() {
+    const INT_INFO = {
+        mayor: {
+            fundamental: { int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · sólido · conclusivo' },
+            primera:     { int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)',  intKey: 'inv1-int', color: 'Suave · fluido · atenúa' },
+            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª Mayor (9 st)', intKey: 'inv2-int', color: 'Tenso · suspendido · exponencializa' },
+        },
+        menor: {
+            fundamental: { int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · oscuro · peso completo' },
+            primera:     { int1: '3ª Mayor (4 st)', int2: '6ª menor (8 st)', intKey: 'inv1-int', color: 'Suave · atenúa · menor ligero' },
+            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª menor (8 st)', intKey: 'inv2-int', color: 'Tenso · sombríamente inestable' },
+        }
+    };
+    const acordes = [];
+    for (let raiz = 0; raiz < 12; raiz++) {
+        const raizMidi = BASE_MIDI + raiz;
+        const raizNombre = NOTAS[raiz];
+        for (const calidad of ['mayor', 'menor']) {
+            const tercera = calidad === 'mayor' ? 4 : 3;
+            const quinta  = 7;
+            const terceraMidi = raizMidi + tercera;
+            const quintaMidi  = raizMidi + quinta;
+            const terceraNombre = NOTAS[terceraMidi % 12];
+            const quintaNombre  = NOTAS[quintaMidi  % 12];
+            const nombreAcorde = `${raizNombre} ${calidad === 'mayor' ? 'Mayor' : 'menor'}`;
+            const sufijo = calidad === 'mayor' ? 'M' : 'm';
+            // Fundamental
+            const fi = INT_INFO[calidad].fundamental;
+            acordes.push({
+                id: `${raiz}_${calidad}_fund`, name: nombreAcorde,
+                degree: `${raizNombre}${sufijo}`, quality: calidad, type: 'fundamental',
+                notes: [raizNombre, terceraNombre, quintaNombre],
+                midis: [raizMidi, terceraMidi, quintaMidi],
+                bassNote: raizNombre, bassRole: 'raíz',
+                root: raizNombre,
+                ...fi, flavour: `${nombreAcorde} en posición fundamental. Bajo en ${raizNombre} (raíz).`
+            });
+            // 1ª Inversión
+            const i1 = INT_INFO[calidad].primera;
+            acordes.push({
+                id: `${raiz}_${calidad}_inv1`, name: nombreAcorde,
+                degree: `${raizNombre}${sufijo}⁶`, quality: calidad, type: 'primera',
+                notes: [terceraNombre, quintaNombre, raizNombre],
+                midis: [terceraMidi, quintaMidi, raizMidi + 12],
+                bassNote: terceraNombre, bassRole: '3ª',
+                root: raizNombre,
+                ...i1, flavour: `${nombreAcorde} en 1ª inversión. Bajo en ${terceraNombre} (la 3ª).`
+            });
+            // 2ª Inversión
+            const i2 = INT_INFO[calidad].segunda;
+            acordes.push({
+                id: `${raiz}_${calidad}_inv2`, name: nombreAcorde,
+                degree: `${raizNombre}${sufijo}⁶₄`, quality: calidad, type: 'segunda',
+                notes: [quintaNombre, raizNombre, terceraNombre],
+                midis: [quintaMidi, raizMidi + 12, terceraMidi + 12],
+                bassNote: quintaNombre, bassRole: '5ª',
+                root: raizNombre,
+                ...i2, flavour: `${nombreAcorde} en 2ª inversión. Bajo en ${quintaNombre} (la 5ª).`
+            });
+        }
+    }
+    return acordes;
+}
 
-    // A mayor
-    {
-        id: 'A_fund', name: 'La Mayor', degree: 'VI M', quality: 'mayor', type: 'fundamental',
-        notes: ['La', 'Do#', 'Mi'], midis: [45, 49, 52], bassNote: 'La', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · brillante · peso completo',
-        flavour: 'A Mayor en fundamental. El Do# (fuera de Do diatónico) le da un brillo cromático especial.'
-    },
-
-    // B mayor
-    {
-        id: 'B_inv1', name: 'Si Mayor', degree: 'VII M⁶', quality: 'mayor', type: 'primera',
-        notes: ['Re#', 'Fa#', 'Si'], midis: [51, 54, 59], bassNote: 'Re#', bassRole: '3ª',
-        int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)', intKey: 'inv1-int',
-        color: 'Suave · brillante · atenúa',
-        flavour: 'B Mayor en 1ª inv. Bajo en Re# — completamente cromatico respecto a Do. Fluye con carácter.'
-    },
-    {
-        id: 'B_fund', name: 'Si Mayor', degree: 'VII M', quality: 'mayor', type: 'fundamental',
-        notes: ['Si', 'Re#', 'Fa#'], midis: [47, 51, 54], bassNote: 'Si', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · brillante · extra-tonal',
-        flavour: 'B Mayor en fundamental. Fuera de Do diatónico — color muy llamativo y brillante.'
-    },
-
-    // Am
-    {
-        id: 'Am_fund', name: 'La menor', degree: 'VI m', quality: 'menor', type: 'fundamental',
-        notes: ['La', 'Do', 'Mi'], midis: [45, 48, 52], bassNote: 'La', bassRole: 'raíz',
-        int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · oscuro · relativo menor',
-        flavour: 'La menor en fundamental. Sombrío y estable — el relativo menor de Do.'
-    },
-    {
-        id: 'Am_inv2', name: 'La menor', degree: 'VI m⁶₄', quality: 'menor', type: 'segunda',
-        notes: ['Mi', 'La', 'Do'], midis: [52, 57, 60], bassNote: 'Mi', bassRole: '5ª',
-        int1: '4ª Justa (5 st)', int2: '6ª menor (8 st)', intKey: 'inv2-int',
-        color: 'Tenso · sombríamente inestable · exponencializa',
-        flavour: 'Am en 2ª inv. Bajo en Mi + carácter menor = tensión oscura muy particular.'
-    },
-    {
-        id: 'Am_inv1', name: 'La menor', degree: 'VI m⁶', quality: 'menor', type: 'primera',
-        notes: ['Do', 'Mi', 'La'], midis: [48, 52, 57], bassNote: 'Do', bassRole: '3ª',
-        int1: '3ª Mayor (4 st)', int2: '6ª Mayor (9 st)', intKey: 'inv1-int',
-        color: 'Suave · atenúa · menor ligero',
-        flavour: 'Am en 1ª inv. Bajo en Do alivia el peso del menor.'
-    },
-
-    // Gm
-    {
-        id: 'Gm_inv2', name: 'Sol menor', degree: 'V m⁶₄', quality: 'menor', type: 'segunda',
-        notes: ['Re', 'Sol', 'Sib'], midis: [50, 55, 58], bassNote: 'Re', bassRole: '5ª',
-        int1: '4ª Justa (5 st)', int2: '6ª menor (8 st)', intKey: 'inv2-int',
-        color: 'Tenso · oscuro · suspendido',
-        flavour: 'Gm en 2ª inv. El Sib es modal — fuera de Do diatónico. Tensión oscura e inusual.'
-    },
-    {
-        id: 'Gm_fund', name: 'Sol menor', degree: 'V m', quality: 'menor', type: 'fundamental',
-        notes: ['Sol', 'Sib', 'Re'], midis: [43, 46, 50], bassNote: 'Sol', bassRole: 'raíz',
-        int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · oscuro · modal',
-        flavour: 'Sol menor en fundamental. El Sib da color modal oscuro.'
-    },
-
-    // F
-    {
-        id: 'F_inv2', name: 'Fa Mayor', degree: 'IV⁶₄', quality: 'mayor', type: 'segunda',
-        notes: ['Do', 'Fa', 'La'], midis: [48, 53, 57], bassNote: 'Do', bassRole: '5ª',
-        int1: '4ª Justa (5 st)', int2: '6ª Mayor (9 st)', intKey: 'inv2-int',
-        color: 'Tenso · cadencial · inestable',
-        flavour: 'F en 2ª inv. Bajo en Do — crea tensión subdominante sobre la nota tónica.'
-    },
-    {
-        id: 'F_fund', name: 'Fa Mayor', degree: 'IV', quality: 'mayor', type: 'fundamental',
-        notes: ['Fa', 'La', 'Do'], midis: [53, 57, 60], bassNote: 'Fa', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · cálido · subdominante',
-        flavour: 'Fa Mayor en fundamental. Cálido y amplio, el IV grado clásico.'
-    },
-    {
-        id: 'F_inv1', name: 'Fa Mayor', degree: 'IV⁶', quality: 'mayor', type: 'primera',
-        notes: ['La', 'Do', 'Fa'], midis: [57, 60, 65], bassNote: 'La', bassRole: '3ª',
-        int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)', intKey: 'inv1-int',
-        color: 'Suave · fluido · atenúa',
-        flavour: 'Fa en 1ª inv. Bajo en La hace la subdominante más ligera y melódica.'
-    },
-
-    // D mayor
-    {
-        id: 'D_fund', name: 'Re Mayor', degree: 'II M', quality: 'mayor', type: 'fundamental',
-        notes: ['Re', 'Fa#', 'La'], midis: [50, 54, 57], bassNote: 'Re', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · brillante · extra-tonal',
-        flavour: 'Re Mayor en fundamental. El Fa# (fuera de Do diatónico) da brillo y carácter.'
-    },
-
-    // G mayor
-    {
-        id: 'G_fund', name: 'Sol Mayor', degree: 'V', quality: 'mayor', type: 'fundamental',
-        notes: ['Sol', 'Si', 'Re'], midis: [43, 47, 50], bassNote: 'Sol', bassRole: 'raíz',
-        int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · dominante · pide resolver a I',
-        flavour: 'V en fundamental. Tensión dominante — pide ir al I.'
-    },
-    {
-        id: 'G_inv1', name: 'Sol Mayor', degree: 'V⁶', quality: 'mayor', type: 'primera',
-        notes: ['Si', 'Re', 'Sol'], midis: [47, 50, 55], bassNote: 'Si', bassRole: '3ª',
-        int1: '3ª menor (3 st)', int2: '6ª menor (8 st)', intKey: 'inv1-int',
-        color: 'Suave · dominante ligero · atenúa',
-        flavour: 'G en 1ª inv. Bajo en Si crea línea descendente elegante Si→La hacia I.'
-    },
-
-    // Em
-    {
-        id: 'Em_fund', name: 'Mi menor', degree: 'III m', quality: 'menor', type: 'fundamental',
-        notes: ['Mi', 'Sol', 'Si'], midis: [52, 55, 59], bassNote: 'Mi', bassRole: 'raíz',
-        int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)', intKey: 'fund-int',
-        color: 'Estable · oscuro · íntimo',
-        flavour: 'Mi menor en fundamental. El III grado — estable con carácter íntimo.'
-    },
-];
+const CHORDS = generarAcordes();
 
 const INTERVAL_MAP = { 'fund-int': 'fundamental', 'inv1-int': 'primera', 'inv2-int': 'segunda' };
 const TYPE_LABELS = { fundamental: 'Posición Fundamental', primera: '1ª Inversión', segunda: '2ª Inversión' };
@@ -196,6 +153,7 @@ const COLOR_BY_TYPE = { fundamental: 'var(--fund-acc)', primera: 'var(--inv1-acc
 
 // ─── EXPLORER ────────────────────────────────────────────────────
 let currentFilter = 'all';
+let currentRootFilter = 'all';
 
 function buildTiles() {
     const container = document.getElementById('chordTiles');
@@ -214,7 +172,15 @@ function buildTiles() {
 
 function setFilter(filter, btn) {
     currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('f-active'));
+    document.querySelectorAll('.filter-btn:not(.root-filter-btn)').forEach(b => b.classList.remove('f-active'));
+    btn.classList.add('f-active');
+    applyFilter();
+    closeDrawer();
+}
+
+function setRootFilter(root, btn) {
+    currentRootFilter = root;
+    document.querySelectorAll('.root-filter-btn').forEach(b => b.classList.remove('f-active'));
     btn.classList.add('f-active');
     applyFilter();
     closeDrawer();
@@ -224,20 +190,21 @@ function applyFilter() {
     CHORDS.forEach(c => {
         const el = document.getElementById('tile-' + c.id);
         if (!el) return;
-        const show = currentFilter === 'all'         ? true
-                   : currentFilter === 'fundamental' ? c.type === 'fundamental'
-                   : currentFilter === 'primera'     ? c.type === 'primera'
-                   : currentFilter === 'segunda'     ? c.type === 'segunda'
-                   : currentFilter === 'mayor'       ? c.quality === 'mayor'
-                   :                                   c.quality === 'menor';
-        el.classList.toggle('hidden', !show);
+        const matchType = currentFilter === 'all'         ? true
+                        : currentFilter === 'fundamental' ? c.type === 'fundamental'
+                        : currentFilter === 'primera'     ? c.type === 'primera'
+                        : currentFilter === 'segunda'     ? c.type === 'segunda'
+                        : currentFilter === 'mayor'       ? c.quality === 'mayor'
+                        :                                   c.quality === 'menor';
+        const matchRoot = currentRootFilter === 'all' || c.root === currentRootFilter;
+        el.classList.toggle('hidden', !(matchType && matchRoot));
     });
 }
 
 function openTile(id) {
     const c = CHORDS.find(x => x.id === id);
     if (!c) return;
-    playChord(c.midis, true);
+    playChord(c.midis, 0.1);
     const tile = document.getElementById('tile-' + id);
     tile.classList.add('playing');
     setTimeout(() => tile.classList.remove('playing'), 400);
@@ -257,22 +224,45 @@ function openTile(id) {
 <tr><td>${c.bassNote} → ${c.notes[1]}</td><td>${c.notes[1]}</td><td>${lb1}</td><td>${st1}</td></tr>
 <tr><td>${c.bassNote} → ${c.notes[2]}</td><td>${c.notes[2]}</td><td>${lb2}</td><td>${st2}</td></tr>`;
 
-    const drawer = document.getElementById('detailDrawer');
-    drawer.classList.add('open');
-    drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('chordModalBg').classList.add('open');
 }
 
-function closeDrawer() { document.getElementById('detailDrawer').classList.remove('open'); }
+function closeDrawer() { document.getElementById('chordModalBg').classList.remove('open'); }
 
-// ─── QUIZ ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// ─── QUIZ — INVERSIONES ───────────────────────────────────────────
 let current = null, roundNum = 0;
 let scores = { s1: [0, 0], s2: [0, 0], s3: [0, 0] };
 let phase = 'idle';
+
+// Modos de reproducción (compartido entre Practicar y Grados)
+let playMode = 'simul'; // 'simul' | 'arp'
+let repeatCount = 0;
+// Velocidades del arpegio — cicla de vuelta al inicio tras el último paso
+const ARP_DELAYS  = [0.09, 0.14, 0.20, 0.28, 0.38, 0.50];
+const TEMPO_NAMES = ['allegro', 'andante', 'moderato', 'lento', 'adagio', 'largo'];
+
+function setPlayMode(mode) {
+    playMode = mode;
+    document.querySelectorAll('.mode-btn-simul').forEach(b => b.classList.toggle('m-active', mode === 'simul'));
+    document.querySelectorAll('.mode-btn-arp').forEach(b => b.classList.toggle('m-active', mode === 'arp'));
+}
+
+function getArpDelay() {
+    // Cicla de vuelta a allegro después del último paso
+    return ARP_DELAYS[repeatCount % ARP_DELAYS.length];
+}
+
+function getTempoName() {
+    return TEMPO_NAMES[repeatCount % TEMPO_NAMES.length];
+}
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function startRound() {
     current = rand(CHORDS); roundNum++; phase = 'step1';
+    repeatCount = 0;
     document.getElementById('playHint').textContent = 'escuchando… ↺ para repetir';
     document.getElementById('repeatBtn').disabled = false;
     document.getElementById('revealPanel').classList.remove('visible');
@@ -290,10 +280,20 @@ function startRound() {
     document.getElementById('scoreRound').textContent = '#' + roundNum;
     const pb = document.getElementById('playBtn');
     pb.classList.add('ringing'); setTimeout(() => pb.classList.remove('ringing'), 400);
-    playChord(current.midis, true);
+    playChord(current.midis, playMode === 'arp' ? ARP_DELAYS[0] : 0);
 }
 
-function repeatChord() { if (current) playChord(current.midis, false); }
+function repeatChord() {
+    if (!current) return;
+    repeatCount++;
+    playChord(current.midis, playMode === 'arp' ? getArpDelay() : 0);
+    if (playMode === 'arp') {
+        const looped = (repeatCount % ARP_DELAYS.length) === 0;
+        const hint = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${getTempoName()}`;
+        document.getElementById('playHint').textContent = hint;
+    }
+}
+
 function nextRound() { startRound(); }
 
 function markStep(n, correct) {
@@ -350,6 +350,7 @@ function showReveal() {
         { t: 'Bajo: ' + current.bassNote + ' (' + current.bassRole + ')', a: true },
     ].map(p => `<span class="rev-pill ${p.a ? 'acc' : ''}">${p.t}</span>`).join('');
     document.getElementById('revealPanel').classList.add('visible');
+    guardarRonda('inversiones', scores.s1[0]+scores.s2[0]+scores.s3[0], scores.s1[1]+scores.s2[1]+scores.s3[1]);
 }
 
 function updateScoreUI() {
@@ -362,5 +363,445 @@ function updateScoreUI() {
     document.getElementById('totalScore').textContent = tc + '/' + tt;
 }
 
+// ─── GRADOS TONALES (en Do Mayor) ────────────────────────────────
+// Los 5 acordes diatónicos de Do Mayor: I III IV V VI
+// Todos en posición fundamental, en registro medio
+const DEGREES = [
+    {
+        num: 'I', name: 'Tónica', quality: 'mayor',
+        chordName: 'Do Mayor', notes: ['Do', 'Mi', 'Sol'], midis: [60, 64, 67],
+        feeling: '"Llegué. Reposo absoluto."',
+        desc: 'La base de todo. El hogar tonal. Cualquier frase musical se siente completa cuando llega aquí.',
+        color: '#4caf7d',
+        prog: 'I → IV → V → I — la progresión más clásica',
+        ref: '"Las Mañanitas" y "Cielito Lindo" terminan siempre en este acorde',
+        qualityLabel: 'Mayor'
+    },
+    {
+        num: 'III', name: 'Mediante', quality: 'menor',
+        chordName: 'Mi menor', notes: ['Mi', 'Sol', 'Si'], midis: [52, 55, 59],
+        feeling: '"Íntimo. Un poco oscuro."',
+        desc: 'Acorde menor sobre la tercera nota. Comparte dos notas con el I (Mi, Sol) y dos con el V (Sol, Si). Ambiguo y expresivo.',
+        color: '#9b8ec4',
+        prog: 'I → III → IV — movimiento descendente con emoción',
+        ref: '"El Rey" (José Alfredo) — el III aparece en el puente antes del IV',
+        qualityLabel: 'menor'
+    },
+    {
+        num: 'IV', name: 'Subdominante', quality: 'mayor',
+        chordName: 'Fa Mayor', notes: ['Fa', 'La', 'Do'], midis: [53, 57, 60],
+        feeling: '"Me alejo del centro."',
+        desc: 'Cálido y amplio. Tensión de salida — lleva al V con urgencia o regresa al I con calidez (cadencia plagal "amén").',
+        color: '#d4aa3e',
+        prog: 'I → IV → V → I · I → IV → I (plagal "amén")',
+        ref: '"La Bamba" — el IV es el segundo acorde de toda la canción',
+        qualityLabel: 'Mayor'
+    },
+    {
+        num: 'V', name: 'Dominante', quality: 'mayor',
+        chordName: 'Sol Mayor', notes: ['Sol', 'Si', 'Re'], midis: [55, 59, 62],
+        feeling: '"Tengo que resolver. Ahora."',
+        desc: 'La tensión más fuerte de la tonalidad. El Si (sensible) pide subir al Do. Motor de toda la armonía tonal.',
+        color: '#e07a3a',
+        prog: 'V → I: cadencia auténtica, la más conclusiva',
+        ref: '"Himno Nacional" — cada final de frase cae de V a I',
+        qualityLabel: 'Mayor'
+    },
+    {
+        num: 'VI', name: 'Superdominante', quality: 'menor',
+        chordName: 'La menor', notes: ['La', 'Do', 'Mi'], midis: [57, 60, 64],
+        feeling: '"Nostalgia. El lado oscuro."',
+        desc: 'El relativo menor de Do. Oscuro pero estable. Base de la progresión I-V-VI-IV (pop, rock, bolero).',
+        color: '#6abfb0',
+        prog: 'I → V → VI → IV — la "progresión del pop"',
+        ref: '"La Cucaracha" pasa por este acorde · "Bésame Mucho" lo usa como punto de partida',
+        qualityLabel: 'menor'
+    },
+];
+
+let currentDegree = null, degRound = 0;
+let degScores = [0, 0];
+let degPhase = 'idle';
+let degRepeatCount = 0;
+
+function buildDegreeRef() {
+    document.getElementById('degRefGrid').innerHTML = DEGREES.map(d => `
+<div class="deg-card" style="--deg-col:${d.color}">
+    <div class="deg-num-badge" style="color:${d.color}">${d.num}</div>
+    <div class="deg-chord-name">${d.chordName}</div>
+    <div class="deg-quality-tag ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</div>
+    <div class="deg-fn-name">${d.name}</div>
+    <div class="deg-feeling">${d.feeling}</div>
+    <div class="deg-notes-row">${d.notes.join(' · ')}</div>
+    <div class="deg-prog-hint">${d.prog}</div>
+    <div class="deg-ref-song">${d.ref}</div>
+</div>`).join('');
+
+    document.getElementById('degBtnGrid').innerHTML = DEGREES.map(d =>
+        `<button class="deg-btn" data-deg="${d.num}" style="--deg-color:${d.color}" onclick="answerDegree('${d.num}')">
+    <span class="deg-btn-num">${d.num}</span>
+    <span class="deg-btn-chord">${d.chordName}</span>
+    <span class="deg-btn-quality ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</span>
+</button>`
+    ).join('');
+}
+
+// El contexto tonal: Do Mayor arpegiado suave, luego el acorde misterio
+function playDegreeContext(degData, arpInterval) {
+    stopAllNodes();
+    const a = ctx(), now = a.currentTime + 0.05;
+    const step = 0.13;
+    // Contexto: Do-Mi-Sol (gain más bajo para distinguirlo del acorde misterio)
+    [60, 64, 67].forEach((m, i) => {
+        const o = a.createOscillator(), g = a.createGain();
+        o.type = 'sine'; o.frequency.value = mfreq(m);
+        g.gain.setValueAtTime(0, now + i * step);
+        g.gain.linearRampToValueAtTime(0.10, now + i * step + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, now + i * step + 0.9);
+        o.connect(g); g.connect(masterOut);
+        o.start(now + i * step); o.stop(now + i * step + 1.0);
+        activeNodes.push(o, g);
+    });
+    // Pausa + acorde misterio (más fuerte para destacar)
+    const offset = now + 3 * step + 0.55;
+    degData.midis.forEach((m, i) =>
+        playNote(m, offset + (arpInterval ? i * arpInterval : 0), 2.2)
+    );
+}
+
+function startDegreeRound() {
+    currentDegree = rand(DEGREES); degRound++; degPhase = 'answering';
+    degRepeatCount = 0;
+    document.getElementById('degPlayHint').textContent = 'escuchando…';
+    document.getElementById('degRepeatBtn').disabled = false;
+    document.getElementById('degRevealPanel').classList.remove('visible');
+    document.querySelectorAll('.deg-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('degRound').textContent = '#' + degRound;
+    const btn = document.getElementById('degPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+
+    const delay = playMode === 'arp' ? ARP_DELAYS[0] : 0;
+    playDegreeContext(currentDegree, delay);
+
+    setTimeout(() => {
+        if (degPhase === 'answering')
+            document.getElementById('degPlayHint').textContent = '¿qué grado tonal es?';
+    }, 1800);
+}
+
+function repeatDegree() {
+    if (!currentDegree) return;
+    degRepeatCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[degRepeatCount % ARP_DELAYS.length] : 0;
+    playDegreeContext(currentDegree, delay);
+    if (playMode === 'arp') {
+        const looped = (degRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[degRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('degPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerDegree(num) {
+    if (degPhase !== 'answering') return;
+    degPhase = 'done';
+    const correct = num === currentDegree.num;
+    degScores[1]++;
+    if (correct) degScores[0]++;
+
+    document.querySelectorAll('.deg-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.deg === currentDegree.num && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`.deg-btn[data-deg="${num}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    const d = currentDegree;
+    document.getElementById('degRevTitle').textContent = `${d.num} — ${d.chordName}`;
+    document.getElementById('degRevQuality').textContent = d.qualityLabel;
+    document.getElementById('degRevQuality').className = 'deg-rev-quality ' + (d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor');
+    document.getElementById('degRevFeeling').textContent = d.feeling;
+    document.getElementById('degRevDesc').textContent = d.desc;
+    document.getElementById('degRevProg').textContent = d.prog;
+    document.getElementById('degRevealPanel').classList.add('visible');
+    document.getElementById('degScore').textContent = `${degScores[0]}/${degScores[1]}`;
+    guardarRonda('grados', degScores[0], degScores[1]);
+}
+
+// ─── PROGRESIONES ────────────────────────────────────────────────
+const PROGRESSIONS = [
+    // 2-chord cadences
+    { id:'aut2', name:'Cadencia Auténtica', chords:['V','I'],
+      feeling:'Resolución absoluta · cierre definitivo',
+      desc:'La cadencia más conclusiva de la armonía tonal. El V resuelve al I — la tensión más fuerte se libera de golpe.',
+      songs:['"Himno Nacional" — cierre de cada frase', '"Las Mañanitas" — nota final'],
+      color:'#e07a3a', weight:5 },
+    { id:'plag2', name:'Cadencia Plagal', chords:['IV','I'],
+      feeling:'Cálida · suave · "amén"',
+      desc:'El cierre meditativo y cálido. Menos urgente que la auténtica — típica de himnos y cierres litúrgicos.',
+      songs:['"Amén" en himnos religiosos', '"La Bamba" — reposo final'],
+      color:'#d4aa3e', weight:4 },
+    { id:'semi2', name:'Semicadencia', chords:['I','V'],
+      feeling:'Suspendida · pregunta sin respuesta',
+      desc:'Termina en el V — queda flotando. Es como una pregunta musical. La frase pide continuación.',
+      songs:['"Las Mañanitas" — la primera frase termina aquí'],
+      color:'#7eb8d4', weight:4 },
+    { id:'rota2', name:'Cadencia Rota', chords:['V','VI'],
+      feeling:'Sorpresa · evasión · continúa',
+      desc:'Esperabas el I pero llegó el VI menor. El compositor evade la resolución — la música quiere seguir.',
+      songs:['"Bésame Mucho" — el giro dramático del verso'],
+      color:'#9b8ec4', weight:3 },
+    // 3-chord
+    { id:'cad3', name:'Cadencia Completa', chords:['IV','V','I'],
+      feeling:'Conclusiva · preparada · clásica',
+      desc:'La cadencia auténtica precedida por la subdominante. Fórmula clásica al cerrar frases musicales.',
+      songs:['"Himno Nacional" — cada cierre de verso', '"Cielito Lindo" — al final'],
+      color:'#e07a3a', weight:5 },
+    { id:'tens3', name:'Tensión Progresiva', chords:['I','IV','V'],
+      feeling:'Ascendente · con dirección · incompleta',
+      desc:'Sale de la tónica, avanza al IV y llega al V. Pide resolver al I — la progresión que empuja hacia adelante.',
+      songs:['"La Bamba" — primera mitad del ciclo'],
+      color:'#4caf7d', weight:4 },
+    { id:'rel3', name:'Con el Relativo', chords:['I','VI','V'],
+      feeling:'Con sombra · hacia la tensión',
+      desc:'Pasa por el relativo menor antes de llegar al dominante. Le da un tono más expresivo y dramático.',
+      songs:['"Bésame Mucho" — inicio del verso'],
+      color:'#6abfb0', weight:3 },
+    { id:'iv6v3', name:'Subdominante a Dominante', chords:['VI','IV','V'],
+      feeling:'Oscura · creciente · incompleta',
+      desc:'Empieza desde el relativo menor, pasa por el IV cálido y llega al V tenso. Pide resolver al I.',
+      songs:['"La Llorona" (sección)'],
+      color:'#9b8ec4', weight:3 },
+    // 4-chord
+    { id:'basic4', name:'La Básica', chords:['I','IV','V','I'],
+      feeling:'Directa · completa · reposada',
+      desc:'La progresión más fundamental de la música tonal. Sale de casa, avanza, crea tensión y regresa. El ciclo perfecto.',
+      songs:['"La Bamba"', '"Guantanamera"', 'Blues en mayor'],
+      color:'#4caf7d', weight:5 },
+    { id:'pop4', name:'La del Pop', chords:['I','V','VI','IV'],
+      feeling:'Emotiva · épica · universal',
+      desc:'La progresión más grabada del pop moderno. El VI da el giro emocional antes de caer al IV cálido.',
+      songs:['"No Woman No Cry" (Bob Marley)', '"Vivir mi Vida" (Marc Anthony)', '"Let It Be" (Beatles)'],
+      color:'#e07a3a', weight:5 },
+    { id:'bolero4', name:'La del Bolero', chords:['I','VI','IV','V'],
+      feeling:'Nostálgica · romántica · circular',
+      desc:'El sonido del bolero latinoamericano y el rock de los 50. El VI menor da el toque de nostalgia característico.',
+      songs:['"El Reloj" (Los Panchos)', '"Bésame Mucho"', '"Stand By Me"'],
+      color:'#6abfb0', weight:4 },
+    { id:'desc4', name:'Con el Mediante', chords:['I','III','IV','V'],
+      feeling:'Expresiva · colorida · ascendente',
+      desc:'El III menor da un color íntimo y oscuro antes de abrirse al IV y tensionarse en el V.',
+      songs:['"El Rey" (José Alfredo Jiménez) — puente', 'Corrido tradicional'],
+      color:'#9b8ec4', weight:3 },
+    { id:'dark4', name:'Empieza Oscuro', chords:['VI','IV','I','V'],
+      feeling:'Oscura · ascendente · emotiva',
+      desc:'Comienza desde el relativo menor, avanza hacia la luminosidad del I y se tensiona con el V. Circular y emotiva.',
+      songs:['"La Llorona" (variante)', '"Oye Como Va" (Santana) — sección'],
+      color:'#9b8ec4', weight:3 },
+];
+
+function weightedRand(arr) {
+    const total = arr.reduce((sum, x) => sum + x.weight, 0);
+    let r = Math.random() * total;
+    for (const x of arr) { r -= x.weight; if (r <= 0) return x; }
+    return arr[arr.length - 1];
+}
+
+function switchGradosMode(mode) {
+    document.getElementById('gradosSection').style.display = mode === 'grados' ? '' : 'none';
+    document.getElementById('progresionesSection').style.display = mode === 'progresiones' ? '' : 'none';
+    document.getElementById('gmGrados').classList.toggle('gm-active', mode === 'grados');
+    document.getElementById('gmProg').classList.toggle('gm-active', mode === 'progresiones');
+}
+
+function buildProgRef() {
+    document.getElementById('progRefGrid').innerHTML = PROGRESSIONS.map(p =>
+        `<div class="prog-tile" onclick="playAndShowProg('${p.id}')" id="ptile-${p.id}" style="--prog-col:${p.color}">
+    <div class="pt-color-strip"></div>
+    <div class="pt-name">${p.name}</div>
+    <div class="pt-chords">${p.chords.join(' → ')}</div>
+    <div class="pt-feeling">${p.feeling}</div>
+    <div class="pt-songs">${p.songs.slice(0,2).map(s => `<span>${s}</span>`).join('')}</div>
+</div>`
+    ).join('');
+}
+
+function playAndShowProg(id) {
+    const p = PROGRESSIONS.find(x => x.id === id);
+    if (!p) return;
+    const tile = document.getElementById('ptile-' + id);
+    tile.classList.add('playing');
+    setTimeout(() => tile.classList.remove('playing'), 400);
+    playProgression(p.chords, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+}
+
+function playProgression(chordNums, arpInterval) {
+    stopAllNodes();
+    const a = ctx(), now = a.currentTime + 0.05;
+    let offset = 0;
+    chordNums.forEach(num => {
+        const deg = DEGREES.find(d => d.num === num);
+        const noteCount = deg.midis.length;
+        const chordSpread = arpInterval ? noteCount * arpInterval : 0;
+        deg.midis.forEach((m, i) =>
+            playNote(m, now + offset + (arpInterval ? i * arpInterval : 0), 1.7)
+        );
+        offset += (arpInterval ? chordSpread + 0.5 : 0) + 2.1;
+    });
+}
+
+// Progression quiz state
+let currentProg = null, progRound = 0;
+let progScores = [0, 0];
+let progSlot = 0;
+let progPhase = 'idle';
+let progRepeatCount = 0;
+
+function buildProgBtns() {
+    document.getElementById('progBtnGrid').innerHTML = DEGREES.map(d =>
+        `<button class="deg-btn" data-deg="${d.num}" style="--deg-color:${d.color}" onclick="answerProg('${d.num}')">
+    <span class="deg-btn-num">${d.num}</span>
+    <span class="deg-btn-chord">${d.chordName}</span>
+    <span class="deg-btn-quality ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</span>
+</button>`
+    ).join('');
+}
+
+function startProgRound() {
+    currentProg = weightedRand(PROGRESSIONS);
+    progRound++;
+    progSlot = 0;
+    progPhase = 'answering';
+    progRepeatCount = 0;
+
+    document.getElementById('progPlayHint').textContent = 'escuchando…';
+    document.getElementById('progRepeatBtn').disabled = false;
+    document.getElementById('progRevealPanel').classList.remove('visible');
+    document.getElementById('progRound').textContent = '#' + progRound;
+
+    // Build slots
+    document.getElementById('progSlots').innerHTML = currentProg.chords.map((_, i) =>
+        `<div class="prog-slot ${i === 0 ? 'ps-active' : ''}" id="ps${i}">?</div>`
+    ).join('');
+
+    // Reset buttons
+    document.querySelectorAll('#progBtnGrid .deg-btn').forEach(b => {
+        b.disabled = false;
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+    });
+
+    const btn = document.getElementById('progPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+
+    playProgression(currentProg.chords, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+
+    setTimeout(() => {
+        if (progPhase === 'answering')
+            document.getElementById('progPlayHint').textContent = `identifica el acorde ${progSlot + 1} de ${currentProg.chords.length}`;
+    }, currentProg.chords.length * 2200 + 500);
+}
+
+function repeatProg() {
+    if (!currentProg) return;
+    progRepeatCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[progRepeatCount % ARP_DELAYS.length] : 0;
+    playProgression(currentProg.chords, delay);
+    if (playMode === 'arp') {
+        const looped = (progRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[progRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('progPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerProg(num) {
+    if (progPhase !== 'answering') return;
+    const expected = currentProg.chords[progSlot];
+    const correct = num === expected;
+    progScores[1]++;
+    if (correct) progScores[0]++;
+
+    const slot = document.getElementById('ps' + progSlot);
+    slot.textContent = expected;
+    slot.classList.remove('ps-active');
+    slot.classList.add(correct ? 'ps-correct' : 'ps-wrong');
+    if (!correct) {
+        slot.setAttribute('title', `Tu respuesta: ${num}`);
+        const clickedBtn = document.querySelector(`#progBtnGrid .deg-btn[data-deg="${num}"]`);
+        if (clickedBtn) { clickedBtn.classList.add('selected-wrong'); clickedBtn.disabled = true; }
+    } else {
+        const clickedBtn = document.querySelector(`#progBtnGrid .deg-btn[data-deg="${num}"]`);
+        if (clickedBtn) { clickedBtn.classList.add('selected-correct'); clickedBtn.disabled = true; }
+    }
+
+    progSlot++;
+    document.getElementById('progScore').textContent = `${progScores[0]}/${progScores[1]}`;
+
+    if (progSlot >= currentProg.chords.length) {
+        progPhase = 'done';
+        setTimeout(showProgReveal, 400);
+    } else {
+        document.getElementById('ps' + progSlot).classList.add('ps-active');
+        document.getElementById('progPlayHint').textContent = `identifica el acorde ${progSlot + 1} de ${currentProg.chords.length}`;
+    }
+}
+
+function showProgReveal() {
+    const p = currentProg;
+    document.getElementById('progRevTitle').textContent = p.name;
+    document.getElementById('progRevChords').textContent = p.chords.join(' → ');
+    document.getElementById('progRevFeeling').textContent = p.feeling;
+    document.getElementById('progRevDesc').textContent = p.desc;
+    document.getElementById('progRevSongs').innerHTML = p.songs.map(s =>
+        `<span class="prog-song-pill">${s}</span>`
+    ).join('');
+    document.getElementById('progRevealPanel').classList.add('visible');
+    guardarRonda('progresiones', progScores[0], progScores[1]);
+}
+
+// ─── PROGRESO ─────────────────────────────────────────────────────
+const CLAVE_PROGRESO = 'oido_armonico_v1';
+
+function cargarProgreso() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_PROGRESO)) || {}; }
+    catch { return {}; }
+}
+
+function guardarRonda(modulo, correctas, total) {
+    if (total === 0) return;
+    const data = cargarProgreso();
+    if (!data[modulo]) data[modulo] = [];
+    data[modulo].push({ ts: Date.now(), c: correctas, t: total, pct: Math.round(correctas / total * 100) });
+    if (data[modulo].length > 50) data[modulo] = data[modulo].slice(-50);
+    localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(data));
+    renderHistorial(modulo);
+}
+
+function renderHistorial(modulo) {
+    const el = document.getElementById('hist-' + modulo);
+    if (!el) return;
+    const data = cargarProgreso();
+    const hist = (data[modulo] || []).slice(-10);
+    if (hist.length === 0) { el.innerHTML = '<span class="hist-empty">sin historial aún</span>'; return; }
+    const avg = Math.round(hist.reduce((s, x) => s + x.pct, 0) / hist.length);
+    const trend = hist.length >= 3
+        ? hist.slice(-2).reduce((s,x) => s+x.pct,0)/2 - hist.slice(0,-2).reduce((s,x) => s+x.pct,0)/Math.max(hist.length-2,1)
+        : 0;
+    const flecha = trend > 5 ? '↑' : trend < -5 ? '↓' : '→';
+    const puntos = hist.map(r => {
+        const clase = r.pct >= 80 ? 'hp-green' : r.pct >= 50 ? 'hp-yellow' : 'hp-red';
+        return `<span class="hist-punto ${clase}" title="${r.pct}%"></span>`;
+    }).join('');
+    el.innerHTML = `<span class="hist-flecha">${flecha}</span><span class="hist-puntos">${puntos}</span><span class="hist-avg">${avg}% últ.${hist.length}</span>`;
+}
+
+function initHistoriales() {
+    ['inversiones','grados','progresiones'].forEach(renderHistorial);
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────
 buildTiles();
+buildDegreeRef();
+buildProgRef();
+buildProgBtns();
+initHistoriales();

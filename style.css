@@ -456,20 +456,63 @@
         display: none;
     }
 
-    /* ── DETAIL DRAWER ── */
-    .detail-drawer {
-        border: 1.5px solid var(--ink);
-        border-radius: 4px;
-        background: var(--ink);
-        color: var(--bg);
-        padding: 1.5rem;
-        margin-top: 1rem;
+    /* ── MODAL DE ACORDE ── */
+    .chord-modal-bg {
         display: none;
-        animation: fadeUp 0.25s ease;
+        position: fixed;
+        inset: 0;
+        background: rgba(26, 23, 20, 0.55);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
     }
 
-    .detail-drawer.open {
-        display: block;
+    .chord-modal-bg.open {
+        display: flex;
+        animation: fadeIn 0.18s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    .chord-modal {
+        background: var(--ink);
+        color: var(--bg);
+        border-radius: 6px;
+        padding: 1.75rem;
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: slideUp 0.2s ease;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(12px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.25);
+        color: rgba(255,255,255,0.6);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .modal-close:hover {
+        border-color: white;
+        color: white;
     }
 
     @keyframes fadeUp {
@@ -1150,6 +1193,464 @@
         font-style: italic;
     }
 
+    /* ── GRADOS — REFERENCIA ── */
+    .deg-ref-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .deg-card {
+        padding: 1.1rem 0.9rem;
+        border-right: 1px solid var(--ink);
+        border-left: 3px solid var(--deg-col, var(--ink));
+        background: var(--paper);
+    }
+
+    .deg-card:last-child {
+        border-right: none;
+    }
+
+    .deg-num-badge {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .deg-chord-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.85rem;
+        color: var(--ink);
+        margin-bottom: 0.2rem;
+    }
+
+    .deg-quality-tag {
+        display: inline-block;
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 2px;
+        margin-bottom: 0.45rem;
+        font-weight: 500;
+    }
+
+    .dq-mayor {
+        background: rgba(76, 175, 125, 0.12);
+        color: #3a9966;
+        border: 1px solid rgba(76, 175, 125, 0.3);
+    }
+
+    .dq-menor {
+        background: rgba(100, 80, 160, 0.10);
+        color: #7060b8;
+        border: 1px solid rgba(100, 80, 160, 0.25);
+    }
+
+    .deg-fn-name {
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        color: var(--ink-mid);
+        text-transform: uppercase;
+        margin-bottom: 0.35rem;
+    }
+
+    .deg-feeling {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.68rem;
+        font-style: italic;
+        color: var(--ink);
+        margin-bottom: 0.4rem;
+        line-height: 1.4;
+    }
+
+    .deg-notes-row {
+        font-size: 0.6rem;
+        color: var(--ink-faint);
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.02em;
+    }
+
+    .deg-prog-hint {
+        font-size: 0.58rem;
+        color: var(--ink-faint);
+        line-height: 1.5;
+        border-top: 1px solid var(--rule);
+        padding-top: 0.4rem;
+        margin-top: 0.4rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .deg-ref-song {
+        font-size: 0.56rem;
+        color: var(--ink-faint);
+        font-style: italic;
+        line-height: 1.5;
+    }
+
+    /* ── GRADOS — CONTEXTO Y BOTONES ── */
+    .deg-context-hint {
+        font-size: 0.65rem;
+        color: var(--ink-mid);
+        text-align: center;
+        letter-spacing: 0.04em;
+    }
+
+    .deg-context-hint strong {
+        color: var(--ink);
+    }
+
+    .deg-btn-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.65rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .deg-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.9rem 0.5rem;
+        border: 1.5px solid var(--ink);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--ink);
+        font-family: 'IBM Plex Mono', monospace;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+        text-align: center;
+    }
+
+    .deg-btn:hover {
+        background: var(--deg-color, var(--ink));
+        border-color: var(--deg-color, var(--ink));
+        color: white;
+    }
+
+    .deg-btn-num {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .deg-btn-chord {
+        font-size: 0.58rem;
+        letter-spacing: 0.03em;
+        opacity: 0.8;
+    }
+
+    .deg-btn-quality {
+        font-size: 0.52rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 2px;
+    }
+
+    .deg-btn.selected-correct {
+        background: var(--correct);
+        border-color: var(--correct);
+        color: white;
+    }
+
+    .deg-btn.selected-wrong {
+        background: var(--wrong);
+        border-color: var(--wrong);
+        color: white;
+    }
+
+    .deg-btn.reveal-correct {
+        background: rgba(76, 175, 125, 0.12);
+        border-color: var(--correct);
+        color: var(--correct);
+    }
+
+    /* ── GRADOS — REVEAL PANEL ── */
+    .deg-rev-quality {
+        display: inline-block;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 2px;
+        margin-bottom: 0.65rem;
+        font-weight: 500;
+    }
+
+    .deg-rev-quality.dq-mayor {
+        background: rgba(76, 175, 125, 0.2);
+        color: #6de0a8;
+        border: 1px solid rgba(76, 175, 125, 0.3);
+    }
+
+    .deg-rev-quality.dq-menor {
+        background: rgba(160, 140, 210, 0.2);
+        color: #bba8e8;
+        border: 1px solid rgba(160, 140, 210, 0.3);
+    }
+
+    .deg-rev-desc {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.65;
+        margin-bottom: 0.65rem;
+    }
+
+    .deg-rev-prog {
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.45);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 0.65rem;
+        font-style: italic;
+    }
+
+    /* ── GRADOS MODE SELECTOR ── */
+    .grados-mode-selector {
+        display: flex;
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .gm-btn {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        background: transparent;
+        border: none;
+        border-right: 1px solid var(--ink);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-mid);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .gm-btn:last-child { border-right: none; }
+
+    .gm-btn.gm-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .gm-btn:not(.gm-active):hover {
+        background: rgba(26,23,20,0.06);
+        color: var(--ink);
+    }
+
+    /* ── PROGRESIONES — REFERENCIA ── */
+    .prog-ref-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.65rem;
+        margin-bottom: 2rem;
+    }
+
+    .prog-tile {
+        border: 1.5px solid var(--rule);
+        border-radius: 4px;
+        padding: 0.95rem 1rem 0.95rem 1.2rem;
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .prog-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(26,23,20,0.1);
+        border-color: var(--prog-col, var(--ink));
+    }
+
+    .prog-tile.playing {
+        animation: tileFlash 0.35s ease;
+        border-color: var(--prog-col, var(--ink));
+    }
+
+    .pt-color-strip {
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        border-radius: 4px 0 0 4px;
+        background: var(--prog-col, var(--ink));
+    }
+
+    .pt-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 0.95rem;
+        color: var(--ink);
+        margin-bottom: 0.3rem;
+    }
+
+    .pt-chords {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--prog-col, var(--ink));
+        margin-bottom: 0.3rem;
+        letter-spacing: 0.04em;
+    }
+
+    .pt-feeling {
+        font-size: 0.6rem;
+        color: var(--ink-mid);
+        font-style: italic;
+        margin-bottom: 0.45rem;
+        line-height: 1.4;
+    }
+
+    .pt-songs {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .pt-songs span {
+        font-size: 0.57rem;
+        color: var(--ink-faint);
+        line-height: 1.4;
+    }
+
+    /* ── PROGRESIONES — SLOTS ── */
+    .prog-slots-area {
+        margin: 1.25rem 0 0.75rem;
+    }
+
+    .prog-slots-hint {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 0.65rem;
+    }
+
+    .prog-slots {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .prog-slot {
+        min-width: 64px;
+        padding: 0.65rem 0.75rem;
+        border: 1.5px solid var(--rule);
+        border-radius: 3px;
+        text-align: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        color: var(--ink-faint);
+        background: var(--bg);
+        transition: all 0.2s;
+    }
+
+    .prog-slot.ps-active {
+        border-color: var(--ink);
+        color: var(--ink);
+        background: var(--paper);
+        box-shadow: 0 0 0 2px rgba(26,23,20,0.08);
+    }
+
+    .prog-slot.ps-correct {
+        border-color: var(--correct);
+        background: rgba(76,175,125,0.1);
+        color: var(--correct);
+    }
+
+    .prog-slot.ps-wrong {
+        border-color: var(--wrong);
+        background: rgba(224,90,74,0.1);
+        color: var(--wrong);
+    }
+
+    /* ── PROGRESIONES — REVEAL ── */
+    .prog-rev-chords {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        letter-spacing: 0.08em;
+        margin-bottom: 0.5rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .prog-rev-songs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+    }
+
+    .prog-song-pill {
+        padding: 3px 10px;
+        border-radius: 2px;
+        font-size: 0.62rem;
+        background: rgba(255,255,255,0.12);
+        color: rgba(255,255,255,0.8);
+        letter-spacing: 0.03em;
+    }
+
+    /* ── HISTORIAL DE PROGRESO ── */
+    .hist-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0 1rem;
+        min-height: 1.5rem;
+    }
+
+    .hist-empty {
+        font-size: 0.58rem;
+        color: var(--ink-faint);
+        font-style: italic;
+        letter-spacing: 0.08em;
+    }
+
+    .hist-flecha {
+        font-size: 0.85rem;
+        color: var(--ink-mid);
+        min-width: 1rem;
+    }
+
+    .hist-puntos {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+    }
+
+    .hist-punto {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+    }
+
+    .hp-green  { background: var(--correct); }
+    .hp-yellow { background: #d4aa3e; }
+    .hp-red    { background: var(--wrong); }
+
+    .hist-avg {
+        font-size: 0.6rem;
+        color: var(--ink-faint);
+        letter-spacing: 0.06em;
+    }
+
+    /* ── ROOT FILTER ROW ── */
+    .filter-row + .filter-row {
+        margin-top: -0.5rem;
+    }
+
     @media (max-width: 560px) {
 
         .ref-grid,
@@ -1180,4 +1681,31 @@
         .dd-grid {
             grid-template-columns: 1fr;
         }
+
+        .deg-ref-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .deg-card {
+            border-right: none;
+            border-bottom: 1px solid var(--ink);
+        }
+
+        .deg-card:nth-child(odd) {
+            border-right: 1px solid var(--ink);
+        }
+
+        .deg-card:last-child {
+            border-bottom: none;
+        }
+
+        .deg-btn-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .prog-ref-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        #rootFilterRow { flex-wrap: wrap; }
     }
