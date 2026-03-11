@@ -1374,6 +1374,33 @@
         margin-bottom: 0.5rem;
     }
 
+    .prog-chord-previews {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+        margin-bottom: 0.25rem;
+        justify-content: center;
+    }
+
+    .prog-chord-preview-btn {
+        padding: 0.3rem 0.8rem;
+        border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+        border-radius: 3px;
+        background: transparent;
+        color: color-mix(in srgb, var(--ink) 60%, transparent);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .prog-chord-preview-btn:hover {
+        background: color-mix(in srgb, var(--ink) 8%, transparent);
+        color: var(--ink);
+        border-color: var(--ink);
+    }
+
     .deg-btn {
         display: flex;
         flex-direction: column;
@@ -1388,6 +1415,7 @@
         cursor: pointer;
         transition: background 0.12s, color 0.12s, border-color 0.12s;
         text-align: center;
+        width: 100%;
     }
 
     .deg-btn:hover {

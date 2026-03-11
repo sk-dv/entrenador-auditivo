@@ -658,6 +658,32 @@ const PROGRESSIONS = [
       desc:'Comienza desde el relativo menor, avanza hacia la luminosidad del I y se tensiona con el V. Circular y emotiva.',
       songs:['"La Llorona" (variante)', '"Oye Como Va" (Santana) — sección'],
       color:'#9b8ec4', weight:3 },
+    // Circulares — empiezan y terminan en I
+    { id:'circ3a', name:'Ida y Vuelta', chords:['I','V','I'],
+      feeling:'Breve · conclusiva · afirmativa',
+      desc:'La resolución más directa: tensión dominante que regresa a casa. Base de infinitas canciones tradicionales.',
+      songs:['"Las Mañanitas" — célula final', '"Cielito Lindo" — cierre de copla'],
+      color:'#4caf7d', weight:3 },
+    { id:'circ3b', name:'El Abrazo Plagal', chords:['I','IV','I'],
+      feeling:'Cálida · reposada · litúrgica',
+      desc:'Sale a la subdominante y regresa suavemente. El "amén" completo: apertura y cierre en la tónica.',
+      songs:['"Amén" tradicional', '"Alabaré" — estribillo'],
+      color:'#d4aa3e', weight:3 },
+    { id:'circ4a', name:'El Ciclo Completo', chords:['I','VI','IV','I'],
+      feeling:'Nostálgica · circular · reposada',
+      desc:'Gira por el relativo menor y la subdominante antes de regresar al reposo. El ciclo melancólico cerrado.',
+      songs:['"El Reloj" — verso completo', '"Sabor a Mí" — cierre de frase'],
+      color:'#6abfb0', weight:4 },
+    { id:'circ5a', name:'La Romantica', chords:['I','VI','IV','V','I'],
+      feeling:'Romántica · completa · bolero clásico',
+      desc:'El arco completo del bolero: parte de la tónica, pasa por nostalgia y calidez, genera tensión y resuelve. Ciclo redondo.',
+      songs:['"Bésame Mucho" — ciclo completo', '"Sabor a Mí"', '"Perfidia"'],
+      color:'#e07a3a', weight:4 },
+    { id:'circ5b', name:'Con Mediante', chords:['I','III','IV','V','I'],
+      feeling:'Expresiva · colorida · cerrada',
+      desc:'El III menor da profundidad antes de abrirse al IV y tensionarse en el V — el arco completo con color extra.',
+      songs:['"El Rey" (José Alfredo) — frase completa', 'Corrido ranchero'],
+      color:'#9b8ec4', weight:3 },
 ];
 
 function weightedRand(arr) {
@@ -847,8 +873,27 @@ function buildProgBtns() {
     ).join('');
 }
 
+function buildProgChordPreviews() {
+    const container = document.getElementById('progChordPreviews');
+    if (!container || !currentProg) return;
+    container.innerHTML = currentProg.chords.map((_, i) =>
+        `<button class="prog-chord-preview-btn" onclick="playProgChordAt(${i})">acorde ${i + 1}</button>`
+    ).join('');
+    container.style.display = 'flex';
+}
+
+function playProgChordAt(i) {
+    if (!currentProg) return;
+    const num = currentProg.chords[i];
+    const d = DEGREES.find(x => x.num === num);
+    if (!d) return;
+    stopAllNodes();
+    const a = ctx(), now = a.currentTime + 0.05;
+    d.midis.forEach((m, j) => playNote(m, now + j * 0.12, 1.5));
+}
+
 function startProgRound() {
-    currentProg = weightedRand(PROGRESSIONS);
+    currentProg = weightedPick(adaptiveWeights(PROGRESSIONS, 'progresiones', p => p.id));
     progRound++;
     progSlot = 0;
     progPhase = 'answering';
@@ -869,6 +914,8 @@ function startProgRound() {
         b.disabled = false;
         b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
     });
+
+    buildProgChordPreviews();
 
     const btn = document.getElementById('progPlayBtn');
     btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
@@ -899,6 +946,7 @@ function answerProg(num) {
     const correct = num === expected;
     progScores[1]++;
     if (correct) progScores[0]++;
+    registrarDetalle('progresiones', currentProg.id, correct);
 
     const slot = document.getElementById('ps' + progSlot);
     slot.textContent = expected;
@@ -920,6 +968,11 @@ function answerProg(num) {
         progPhase = 'done';
         setTimeout(showProgReveal, 400);
     } else {
+        // Re-habilitar todos los botones para el siguiente slot
+        document.querySelectorAll('#progBtnGrid .deg-btn').forEach(b => {
+            b.disabled = false;
+            b.classList.remove('selected-correct', 'selected-wrong');
+        });
         document.getElementById('ps' + progSlot).classList.add('ps-active');
         document.getElementById('progPlayHint').textContent = `identifica el acorde ${progSlot + 1} de ${currentProg.chords.length}`;
     }
