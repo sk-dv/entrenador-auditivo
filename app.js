@@ -1,6 +1,6 @@
 // ─── TAB ─────────────────────────────────────────────────────────
 function switchTab(name) {
-    ['aprender', 'explorar', 'practicar', 'grados'].forEach((n, i) => {
+    ['aprender', 'explorar', 'practicar', 'grados', 'dictado'].forEach((n, i) => {
         document.querySelectorAll('.tab-btn')[i].classList.toggle('active', n === name);
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
@@ -57,13 +57,13 @@ function stopAllNodes() {
 
 function mfreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
 
-function playNote(midi, start, dur) {
+function playNote(midi, start, dur, gain = 0.12) {
     const a = ctx(), o = a.createOscillator(), g = a.createGain();
     o.type = 'sine';
     o.frequency.value = mfreq(midi);
     g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(0.22, start + 0.04);
-    g.gain.setValueAtTime(0.22, start + 0.1);
+    g.gain.linearRampToValueAtTime(gain, start + 0.04);
+    g.gain.setValueAtTime(gain, start + 0.1);
     g.gain.exponentialRampToValueAtTime(0.001, start + dur);
     o.connect(g); g.connect(masterOut);
     o.start(start); o.stop(start + dur + 0.1);
@@ -225,11 +225,15 @@ function openTile(id) {
 <tr><td>${c.bassNote} → ${c.notes[2]}</td><td>${c.notes[2]}</td><td>${lb2}</td><td>${st2}</td></tr>`;
 
     document.getElementById('chordModalBg').classList.add('open');
+    document.body.classList.add('modal-open');
 }
 
-function closeDrawer() { document.getElementById('chordModalBg').classList.remove('open'); }
+function closeDrawer() {
+    document.getElementById('chordModalBg').classList.remove('open');
+    document.body.classList.remove('modal-open');
+}
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeAnalysis(); } });
 
 // ─── QUIZ — INVERSIONES ───────────────────────────────────────────
 let current = null, roundNum = 0;
@@ -260,8 +264,51 @@ function getTempoName() {
 
 function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// ─── SELECCIÓN ADAPTATIVA ─────────────────────────────────────────
+// Peso inverso a la precisión: si fallas más en X, X aparece más
+function adaptiveWeights(items, detalleMod, keyFn) {
+    const det = (cargarProgreso().detalle || {})[detalleMod] || {};
+    return items.map(item => {
+        const [ok, tot] = det[keyFn(item)] || [0, 0];
+        const weight = tot < 5 ? 0.8 : Math.max(0.1, 1 - ok / tot);
+        return { item, weight };
+    });
+}
+
+function weightedPick(weighted) {
+    const total = weighted.reduce((s, x) => s + x.weight, 0);
+    let r = Math.random() * total;
+    for (const x of weighted) { r -= x.weight; if (r <= 0) return x.item; }
+    return weighted[weighted.length - 1].item;
+}
+
+function pickAdaptiveDegree() {
+    return weightedPick(adaptiveWeights(DEGREES, 'grados', d => d.num));
+}
+
+function pickAdaptiveChord() {
+    // Primero elige tipo (fund/primera/segunda) por peso, luego acorde al azar dentro del tipo
+    const types = ['fundamental', 'primera', 'segunda'];
+    const det = (cargarProgreso().detalle || {}).inversiones || {};
+    const typeW = types.map(t => {
+        const [ok, tot] = det[t] || [0, 0];
+        return { item: t, weight: tot < 5 ? 0.8 : Math.max(0.1, 1 - ok / tot) };
+    });
+    const chosenType = weightedPick(typeW);
+    return rand(CHORDS.filter(c => c.type === chosenType));
+}
+
+function pickAdaptiveDictadoNote() {
+    const det = (cargarProgreso().detalle || {}).dictado || {};
+    const weighted = dictadoSet.notes.map(n => {
+        const [ok, tot] = det[n] || [0, 0];
+        return { item: n, weight: tot < 5 ? 0.8 : Math.max(0.1, 1 - ok / tot) };
+    });
+    return weightedPick(weighted);
+}
+
 function startRound() {
-    current = rand(CHORDS); roundNum++; phase = 'step1';
+    current = pickAdaptiveChord(); roundNum++; phase = 'step1';
     repeatCount = 0;
     document.getElementById('playHint').textContent = 'escuchando… ↺ para repetir';
     document.getElementById('repeatBtn').disabled = false;
@@ -316,6 +363,7 @@ function answerStep1(answer) {
 
 function answerStep2(answer) {
     const correct = answer === current.type; markStep(2, correct);
+    registrarDetalle('inversiones', current.type, correct);
     const order = ['fundamental', 'primera', 'segunda'];
     const btns = document.getElementById('step2').querySelectorAll('.choice-btn');
     btns.forEach((b, i) => { b.disabled = true; if (order[i] === current.type && !correct) b.classList.add('reveal-correct'); });
@@ -376,6 +424,16 @@ const DEGREES = [
         prog: 'I → IV → V → I — la progresión más clásica',
         ref: '"Las Mañanitas" y "Cielito Lindo" terminan siempre en este acorde',
         qualityLabel: 'Mayor'
+    },
+    {
+        num: 'II', name: 'Supertónica', quality: 'menor',
+        chordName: 'Re menor', notes: ['Re', 'Fa', 'La'], midis: [62, 65, 69],
+        feeling: '"Puente íntimo. Quiero moverme."',
+        desc: 'Acorde menor sobre la segunda nota. Tiene una tensión suave que pide resolver hacia el V o el IV. Muy común en cadencias y en la progresión II-V-I del jazz.',
+        color: '#c4886e',
+        prog: 'I → II → V → I — cadencia con supertónica',
+        ref: '"Cielito Lindo" pasa por el II en el verso · cadencia II-V-I muy usada en bolero',
+        qualityLabel: 'menor'
     },
     {
         num: 'III', name: 'Mediante', quality: 'menor',
@@ -465,12 +523,12 @@ function playDegreeContext(degData, arpInterval) {
     // Pausa + acorde misterio (más fuerte para destacar)
     const offset = now + 3 * step + 0.55;
     degData.midis.forEach((m, i) =>
-        playNote(m, offset + (arpInterval ? i * arpInterval : 0), 2.2)
+        playNote(m, offset + (arpInterval ? i * arpInterval : 0), 2.2, 0.07)
     );
 }
 
 function startDegreeRound() {
-    currentDegree = rand(DEGREES); degRound++; degPhase = 'answering';
+    currentDegree = pickAdaptiveDegree(); degRound++; degPhase = 'answering';
     degRepeatCount = 0;
     document.getElementById('degPlayHint').textContent = 'escuchando…';
     document.getElementById('degRepeatBtn').disabled = false;
@@ -510,6 +568,7 @@ function answerDegree(num) {
     const correct = num === currentDegree.num;
     degScores[1]++;
     if (correct) degScores[0]++;
+    registrarDetalle('grados', currentDegree.num, correct);
 
     document.querySelectorAll('.deg-btn').forEach(b => {
         b.disabled = true;
@@ -608,6 +667,20 @@ function weightedRand(arr) {
     return arr[arr.length - 1];
 }
 
+function toggleGradosRef() {
+    const grid = document.getElementById('degRefGrid');
+    const btn  = document.getElementById('toggleRefBtn');
+    const hidden = grid.classList.toggle('ref-hidden');
+    btn.textContent = hidden ? 'ver referencia ↓' : 'ocultar referencia ↑';
+}
+
+function toggleProgRef() {
+    const grid = document.getElementById('progRefGrid');
+    const btn  = document.getElementById('toggleProgRefBtn');
+    const hidden = grid.classList.toggle('ref-hidden');
+    btn.textContent = hidden ? 'ver referencia ↓' : 'ocultar referencia ↑';
+}
+
 function switchGradosMode(mode) {
     document.getElementById('gradosSection').style.display = mode === 'grados' ? '' : 'none';
     document.getElementById('progresionesSection').style.display = mode === 'progresiones' ? '' : 'none';
@@ -625,6 +698,112 @@ function buildProgRef() {
     <div class="pt-songs">${p.songs.slice(0,2).map(s => `<span>${s}</span>`).join('')}</div>
 </div>`
     ).join('');
+}
+
+// ─── PROGRESIONES PERSONALIZADAS ──────────────────────────────────
+const CLAVE_CUSTOM_PROGS = 'oido_custom_progs_v1';
+let customProgBuilder = [];
+
+function cargarCustomProgs() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_CUSTOM_PROGS)) || []; }
+    catch { return []; }
+}
+
+function mergeCustomProgs() {
+    // Eliminar custom anteriores del array, luego re-insertar los guardados
+    for (let i = PROGRESSIONS.length - 1; i >= 0; i--) {
+        if (PROGRESSIONS[i].isCustom) PROGRESSIONS.splice(i, 1);
+    }
+    cargarCustomProgs().forEach(p => PROGRESSIONS.push({ ...p, isCustom: true }));
+}
+
+function guardarYMergeCustomProg(name, chords) {
+    const progs = cargarCustomProgs();
+    progs.push({
+        id: 'custom_' + Date.now(), name: name.trim(), chords,
+        weight: 3, feeling: '', desc: 'Progresión personalizada.',
+        songs: [], color: '#8b7355'
+    });
+    localStorage.setItem(CLAVE_CUSTOM_PROGS, JSON.stringify(progs));
+    mergeCustomProgs();
+    buildProgRef();
+    renderCustomProgList();
+}
+
+function deleteCustomProg(id) {
+    const progs = cargarCustomProgs().filter(p => p.id !== id);
+    localStorage.setItem(CLAVE_CUSTOM_PROGS, JSON.stringify(progs));
+    mergeCustomProgs();
+    buildProgRef();
+    renderCustomProgList();
+}
+
+function customBuilderToggle(num) {
+    if (customProgBuilder.length >= 8) return;
+    customProgBuilder.push(num);
+    renderCustomBuilderPreview();
+}
+
+function customBuilderRemoveLast() {
+    customProgBuilder.pop();
+    renderCustomBuilderPreview();
+}
+
+function renderCustomBuilderPreview() {
+    const preview = document.getElementById('customProgPreview');
+    const count   = document.getElementById('customProgCount');
+    const saveBtn = document.getElementById('customProgSaveBtn');
+    if (preview) preview.textContent = customProgBuilder.length > 0 ? customProgBuilder.join(' → ') : '—';
+    if (count)   count.textContent   = customProgBuilder.length + '/8';
+    if (saveBtn) saveBtn.disabled    = customProgBuilder.length < 2;
+}
+
+function submitCustomProg() {
+    const nameEl = document.getElementById('customProgName');
+    const name = nameEl ? nameEl.value.trim() : '';
+    if (!name || customProgBuilder.length < 2) return;
+    guardarYMergeCustomProg(name, [...customProgBuilder]);
+    customProgBuilder = [];
+    if (nameEl) nameEl.value = '';
+    renderCustomBuilderPreview();
+}
+
+function renderCustomProgList() {
+    const container = document.getElementById('customProgList');
+    if (!container) return;
+    const progs = cargarCustomProgs();
+    if (progs.length === 0) {
+        container.innerHTML = '<span class="custom-prog-empty">sin progresiones guardadas</span>';
+        return;
+    }
+    container.innerHTML = progs.map(p => `
+        <div class="custom-prog-item">
+            <div class="cpi-info">
+                <span class="cpi-name">${p.name}</span>
+                <span class="cpi-chords">${p.chords.join(' → ')}</span>
+            </div>
+            <button class="cpi-delete-btn" onclick="deleteCustomProg('${p.id}')">✕</button>
+        </div>`
+    ).join('');
+}
+
+function buildCustomDegPicker() {
+    const el = document.getElementById('customDegPicker');
+    if (!el) return;
+    el.innerHTML = DEGREES.map(d =>
+        `<button class="deg-btn" style="--deg-color:${d.color}" onclick="customBuilderToggle('${d.num}')">
+            <span class="deg-btn-num">${d.num}</span>
+            <span class="deg-btn-chord">${d.chordName}</span>
+            <span class="deg-btn-quality ${d.quality==='mayor'?'dq-mayor':'dq-menor'}">${d.qualityLabel}</span>
+        </button>`
+    ).join('');
+}
+
+function initCustomProgs() {
+    mergeCustomProgs();
+    buildCustomDegPicker();
+    renderCustomBuilderPreview();
+    renderCustomProgList();
 }
 
 function playAndShowProg(id) {
@@ -645,7 +824,7 @@ function playProgression(chordNums, arpInterval) {
         const noteCount = deg.midis.length;
         const chordSpread = arpInterval ? noteCount * arpInterval : 0;
         deg.midis.forEach((m, i) =>
-            playNote(m, now + offset + (arpInterval ? i * arpInterval : 0), 1.7)
+            playNote(m, now + offset + (arpInterval ? i * arpInterval : 0), 1.7, 0.07)
         );
         offset += (arpInterval ? chordSpread + 0.5 : 0) + 2.1;
     });
@@ -777,6 +956,24 @@ function guardarRonda(modulo, correctas, total) {
     renderHistorial(modulo);
 }
 
+// ─── DETALLE GRANULAR ─────────────────────────────────────────────
+// Registra precisión por ítem individual (grado, nota, tipo de inversión)
+const DETALLE_DEFAULTS = {
+    grados:     { I:[0,0], II:[0,0], III:[0,0], IV:[0,0], V:[0,0], VI:[0,0] },
+    dictado:    Object.fromEntries(['Do','Do#','Re','Mib','Mi','Fa','Fa#','Sol','Lab','La','Sib','Si'].map(n=>[n,[0,0]])),
+    inversiones:{ fundamental:[0,0], primera:[0,0], segunda:[0,0] },
+};
+
+function registrarDetalle(modulo, key, correct) {
+    const data = cargarProgreso();
+    if (!data.detalle) data.detalle = JSON.parse(JSON.stringify(DETALLE_DEFAULTS));
+    if (!data.detalle[modulo]) data.detalle[modulo] = {};
+    if (!data.detalle[modulo][key]) data.detalle[modulo][key] = [0, 0];
+    data.detalle[modulo][key][1]++;
+    if (correct) data.detalle[modulo][key][0]++;
+    localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(data));
+}
+
 function renderHistorial(modulo) {
     const el = document.getElementById('hist-' + modulo);
     if (!el) return;
@@ -796,12 +993,312 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones'].forEach(renderHistorial);
+    ['inversiones','grados','progresiones','dictado'].forEach(renderHistorial);
+}
+
+// ─── DICTADO ISÓCRONO ─────────────────────────────────────────────
+const DICTADO_SETS = [
+    { id:'do5',  label:'Do Mayor',  armadura:'sin alteraciones',        notes:['Do','Re','Mi','Fa','Sol'],    midis:[60,62,64,65,67] },
+    { id:'sol5', label:'Sol Mayor', armadura:'1♯ (Fa#)',                notes:['Sol','La','Si','Do','Re'],   midis:[67,69,71,72,74] },
+    { id:'fa5',  label:'Fa Mayor',  armadura:'1♭ (Sib)',                notes:['Fa','Sol','La','Sib','Do'],  midis:[65,67,69,70,72] },
+    { id:'sib5', label:'Sib Mayor', armadura:'2♭ (Sib, Mib)',           notes:['Sib','Do','Re','Mib','Fa'], midis:[70,72,74,75,77] },
+    { id:'mib5', label:'Mib Mayor', armadura:'3♭ (Sib, Mib, Lab)',      notes:['Mib','Fa','Sol','Lab','Sib'],midis:[75,77,79,80,82] },
+    { id:'re5',  label:'Re Mayor',  armadura:'2♯ (Fa#, Do#)',           notes:['Re','Mi','Fa#','Sol','La'],  midis:[62,64,66,67,69] },
+];
+
+const DICTADO_TEMPOS = [
+    { id:'lento',  interval:1.6  },
+    { id:'normal', interval:1.1  },
+    { id:'rapido', interval:0.75 },
+];
+
+const DICTADO_LENGTH = 10;
+
+let dictadoSet       = DICTADO_SETS[0];
+let dictadoTempo     = DICTADO_TEMPOS[0];
+let dictadoSeq       = [];
+let dictadoSlot      = 0;
+let dictadoPhase     = 'idle';   // 'idle' | 'playing' | 'answering' | 'done'
+let dictadoAnswers   = [];
+let dictadoRoundNum  = 0;
+let dictadoScores    = [0, 0];   // [cumulative correct, cumulative total]
+let dictadoTimers    = [];
+
+function buildDictadoKeyboard() {
+    const grid = document.getElementById('dictadoKeyboard');
+    if (!grid) return;
+    grid.innerHTML = dictadoSet.notes.map(n =>
+        `<button class="dict-key-btn" data-note="${n}" onclick="answerDictado('${n}')">${n}</button>`
+    ).join('');
+    document.querySelectorAll('.dict-key-btn').forEach(b => b.disabled = true);
+}
+
+function updateDictadoNotesList() {
+    const el = document.getElementById('dictNotesList');
+    if (!el) return;
+    el.innerHTML = `notas: <strong>${dictadoSet.notes.join(' · ')}</strong><span class="dict-armadura">${dictadoSet.armadura}</span>`;
+}
+
+function selectDictadoSet(id, el) {
+    dictadoSet = DICTADO_SETS.find(s => s.id === id) || DICTADO_SETS[0];
+    document.querySelectorAll('.dict-set-btn').forEach(b => b.classList.remove('ds-active'));
+    el.classList.add('ds-active');
+    buildDictadoKeyboard();
+    updateDictadoNotesList();
+    resetDictadoRound();
+}
+
+function selectDictadoTempo(id, el) {
+    dictadoTempo = DICTADO_TEMPOS.find(t => t.id === id) || DICTADO_TEMPOS[0];
+    document.querySelectorAll('.dict-tempo-btn').forEach(b => b.classList.remove('ds-active'));
+    el.classList.add('ds-active');
+}
+
+function resetDictadoRound() {
+    dictadoTimers.forEach(clearTimeout);
+    dictadoTimers = [];
+    stopAllNodes();
+    dictadoPhase = 'idle';
+    dictadoSlot  = 0;
+    dictadoSeq   = [];
+    dictadoAnswers = [];
+    document.getElementById('dictadoSlots').innerHTML = Array(DICTADO_LENGTH).fill(0)
+        .map((_, i) => `<div class="dict-slot" id="dslot${i}">?</div>`).join('');
+    document.getElementById('dictadoRevealPanel').classList.remove('visible');
+    document.getElementById('dictadoPlayHint').textContent = 'toca para escuchar la secuencia';
+    document.getElementById('dictadoRepeatBtn').disabled = true;
+    document.getElementById('dictadoScore').textContent = '—';
+    document.querySelectorAll('.dict-key-btn').forEach(b => b.disabled = true);
+}
+
+function startDictadoRound() {
+    dictadoSeq = Array.from({length: DICTADO_LENGTH}, () => pickAdaptiveDictadoNote());
+    dictadoAnswers = [];
+    dictadoSlot    = 0;
+    dictadoRoundNum++;
+    dictadoPhase   = 'playing';
+    dictadoTimers.forEach(clearTimeout);
+    dictadoTimers  = [];
+
+    document.getElementById('dictadoRoundVal').textContent = '#' + dictadoRoundNum;
+    document.getElementById('dictadoScore').textContent = '—';
+    document.getElementById('dictadoRevealPanel').classList.remove('visible');
+    document.getElementById('dictadoRepeatBtn').disabled = true;
+    document.querySelectorAll('.dict-key-btn').forEach(b => b.disabled = true);
+    document.getElementById('dictadoSlots').innerHTML = Array(DICTADO_LENGTH).fill(0)
+        .map((_, i) => `<div class="dict-slot" id="dslot${i}">?</div>`).join('');
+
+    const pb = document.getElementById('dictadoPlayBtn');
+    pb.classList.add('ringing'); setTimeout(() => pb.classList.remove('ringing'), 400);
+    playDictadoSequence();
+}
+
+function playDictadoSequence() {
+    dictadoTimers.forEach(clearTimeout);
+    dictadoTimers = [];
+    stopAllNodes();
+
+    const iv = dictadoTempo.interval;
+    const a  = ctx();
+
+    // Schedule all note audio (gain reducido para evitar distorsión en notas agudas)
+    dictadoSeq.forEach((note, i) => {
+        const midi = dictadoSet.midis[dictadoSet.notes.indexOf(note)];
+        playNote(midi, a.currentTime + 0.05 + i * iv, iv * 0.75, 0.13);
+    });
+
+    // Visual: pulse each slot as it plays
+    document.querySelectorAll('.dict-slot').forEach(s => s.classList.remove('ds-playing', 'ds-active'));
+    dictadoSeq.forEach((_, i) => {
+        const t = setTimeout(() => {
+            document.querySelectorAll('.dict-slot').forEach(s => s.classList.remove('ds-playing'));
+            const sl = document.getElementById('dslot' + i);
+            if (sl && !sl.classList.contains('ds-correct') && !sl.classList.contains('ds-wrong'))
+                sl.classList.add('ds-playing');
+        }, 50 + i * iv * 1000);
+        dictadoTimers.push(t);
+    });
+
+    // After all notes → reveal first note as gift, user starts from slot 1
+    const tEnd = setTimeout(() => {
+        document.querySelectorAll('.dict-slot').forEach(s => s.classList.remove('ds-playing'));
+        // Regalo: la nota 1 se revela automáticamente
+        const sl0 = document.getElementById('dslot0');
+        if (sl0) { sl0.textContent = dictadoSeq[0]; sl0.classList.add('ds-given'); }
+        dictadoSlot  = 1;
+        dictadoAnswers.push({ note: dictadoSeq[0], expected: dictadoSeq[0], correct: true, given: true });
+        dictadoPhase = 'answering';
+        document.getElementById('dictadoPlayHint').textContent = 'identifica la nota 2 de 10';
+        document.getElementById('dictadoRepeatBtn').disabled = false;
+        document.getElementById('dictadoScore').textContent = '—/' + (DICTADO_LENGTH - 1);
+        document.querySelectorAll('.dict-key-btn').forEach(b => b.disabled = false);
+        const second = document.getElementById('dslot1');
+        if (second) second.classList.add('ds-active');
+    }, 50 + DICTADO_LENGTH * iv * 1000 + 400);
+    dictadoTimers.push(tEnd);
+
+    document.getElementById('dictadoPlayHint').textContent = 'escuchando…';
+}
+
+function repeatDictado() {
+    if (!dictadoSeq.length) return;
+    dictadoSlot    = 0;
+    dictadoAnswers = [];
+    dictadoPhase   = 'playing';
+    document.getElementById('dictadoRepeatBtn').disabled = true;
+    document.getElementById('dictadoScore').textContent = '—';
+    document.querySelectorAll('.dict-key-btn').forEach(b => b.disabled = true);
+    document.getElementById('dictadoSlots').innerHTML = Array(DICTADO_LENGTH).fill(0)
+        .map((_, i) => `<div class="dict-slot" id="dslot${i}">?</div>`).join('');
+    playDictadoSequence();
+}
+
+function answerDictado(note) {
+    if (dictadoPhase !== 'answering') return;
+    const expected = dictadoSeq[dictadoSlot];
+    const correct  = note === expected;
+    dictadoAnswers.push({ note, expected, correct });
+    registrarDetalle('dictado', expected, correct);
+
+    const sl = document.getElementById('dslot' + dictadoSlot);
+    sl.textContent = expected;
+    sl.classList.remove('ds-active');
+    sl.classList.add(correct ? 'ds-correct' : 'ds-wrong');
+    if (!correct) sl.title = 'tu respuesta: ' + note;
+
+    // Brief audio feedback: replay the correct note
+    const midi = dictadoSet.midis[dictadoSet.notes.indexOf(expected)];
+    playNote(midi, ctx().currentTime + 0.02, 0.45, 0.13);
+
+    dictadoSlot++;
+    const answered = dictadoAnswers.filter(a => !a.given);
+    const ok = answered.filter(a => a.correct).length;
+    document.getElementById('dictadoScore').textContent = ok + '/' + answered.length;
+
+    if (dictadoSlot >= DICTADO_LENGTH) {
+        dictadoPhase = 'done';
+        setTimeout(showDictadoReveal, 400);
+    } else {
+        const next = document.getElementById('dslot' + dictadoSlot);
+        if (next) next.classList.add('ds-active');
+        document.getElementById('dictadoPlayHint').textContent =
+            `identifica la nota ${dictadoSlot + 1} de ${DICTADO_LENGTH}`;
+    }
+}
+
+function showDictadoReveal() {
+    // Solo contamos las 9 notas que el usuario respondió (la primera fue regalada)
+    const answered = dictadoAnswers.filter(a => !a.given);
+    const ok  = answered.filter(a => a.correct).length;
+    const tot = answered.length;
+    const pct = Math.round(ok / tot * 100);
+    dictadoScores[0] += ok;
+    dictadoScores[1] += tot;
+
+    document.getElementById('dictadoRevPercent').textContent = `${ok}/${tot} — ${pct}%`;
+    document.getElementById('dictadoRevMsg').textContent =
+        pct === 100 ? '¡Perfecto! Oído impecable.' :
+        pct >= 80   ? 'Muy bien. Casi perfecto.' :
+        pct >= 50   ? 'Buen intento. La práctica hace al maestro.' :
+                      'Sigue escuchando, va a mejorar.';
+    document.getElementById('dictadoTotal').textContent =
+        dictadoScores[0] + '/' + dictadoScores[1];
+    document.getElementById('dictadoRevealPanel').classList.add('visible');
+    guardarRonda('dictado', ok, tot);
+}
+
+function initDictado() {
+    buildDictadoKeyboard();
+    updateDictadoNotesList();
+    resetDictadoRound();
+}
+
+// ─── ANÁLISIS DE PROGRESO ─────────────────────────────────────────
+function openAnalysis() {
+    renderAnalysis();
+    document.getElementById('analysisModalBg').classList.add('open');
+}
+
+function closeAnalysis() {
+    document.getElementById('analysisModalBg').classList.remove('open');
+}
+
+function renderAccBar(label, ok, tot) {
+    if (tot < 5) {
+        return `<div class="am-bar-row">
+            <span class="am-bar-label">${label}</span>
+            <span class="am-bar-nodata">sin datos</span>
+        </div>`;
+    }
+    const pct = Math.round(ok / tot * 100);
+    const col = pct >= 80 ? 'var(--correct)' : pct >= 50 ? '#d4aa3e' : 'var(--wrong)';
+    return `<div class="am-bar-row">
+        <span class="am-bar-label">${label}</span>
+        <div class="am-bar-track"><div class="am-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+        <span class="am-bar-pct" style="color:${col}">${pct}%</span>
+        <span class="am-bar-count">(${ok}/${tot})</span>
+    </div>`;
+}
+
+function renderAnalysis() {
+    const det = (cargarProgreso().detalle) || {};
+    const gdet = det.grados || {};
+    const idet = det.inversiones || {};
+    const ddet = det.dictado || {};
+
+    // Grados
+    document.getElementById('amGrados').innerHTML =
+        DEGREES.map(d => renderAccBar(`${d.num} — ${d.name}`, ...(gdet[d.num]||[0,0]))).join('');
+
+    // Inversiones
+    const invLabels = { fundamental:'Fundamental', primera:'1ª Inversión', segunda:'2ª Inversión' };
+    document.getElementById('amInversiones').innerHTML =
+        ['fundamental','primera','segunda'].map(k => renderAccBar(invLabels[k], ...(idet[k]||[0,0]))).join('');
+
+    // Dictado — solo notas usadas (tot > 0)
+    const usedNotes = Object.keys(DETALLE_DEFAULTS.dictado).filter(k => (ddet[k]||[0,0])[1] > 0);
+    document.getElementById('amDictado').innerHTML = usedNotes.length === 0
+        ? '<span class="am-nodata-msg">Practicá dictado para ver datos aquí.</span>'
+        : usedNotes.map(k => renderAccBar(k, ...(ddet[k]||[0,0]))).join('');
+
+    // Recomendaciones
+    const items = [];
+    DEGREES.forEach(d => { const [ok,tot]=gdet[d.num]||[0,0]; if(tot>=5) items.push({label:`Grado ${d.num}`,pct:ok/tot}); });
+    usedNotes.forEach(k => { const [ok,tot]=ddet[k]||[0,0]; if(tot>=5) items.push({label:`Nota ${k} (dictado)`,pct:ok/tot}); });
+    ['fundamental','primera','segunda'].forEach(k => { const [ok,tot]=idet[k]||[0,0]; if(tot>=5) items.push({label:invLabels[k],pct:ok/tot}); });
+    items.sort((a,b) => a.pct-b.pct);
+    const weak   = items.filter(x => x.pct < 0.80).slice(0,3);
+    const strong = items.filter(x => x.pct >= 0.85);
+    const recEl  = document.getElementById('amRecom');
+    if (items.length === 0) {
+        recEl.innerHTML = '<span class="am-nodata-msg">Hacé más ejercicios para ver recomendaciones.</span>';
+    } else {
+        let html = '';
+        if (weak.length) {
+            html += '<div class="am-recom-block"><div class="am-recom-head">Para trabajar:</div>';
+            html += weak.map(x => {
+                const pct = Math.round(x.pct*100);
+                const col = pct>=50?'#d4aa3e':'var(--wrong)';
+                return `<div class="am-recom-item"><span class="am-recom-label">${x.label}</span><span class="am-recom-pct" style="color:${col}">${pct}%</span></div>`;
+            }).join('');
+            html += '</div>';
+        }
+        if (strong.length) {
+            html += '<div class="am-recom-block"><div class="am-recom-head">Tus puntos fuertes:</div>';
+            html += strong.slice(0,3).map(x =>
+                `<div class="am-recom-item am-recom-strong"><span class="am-recom-label">${x.label}</span><span class="am-recom-pct" style="color:var(--correct)">${Math.round(x.pct*100)}%</span></div>`
+            ).join('');
+            html += '</div>';
+        }
+        recEl.innerHTML = html;
+    }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────
 buildTiles();
 buildDegreeRef();
-buildProgRef();
 buildProgBtns();
+initCustomProgs();   // merge custom progs into PROGRESSIONS antes de buildProgRef
+buildProgRef();
+initDictado();
 initHistoriales();

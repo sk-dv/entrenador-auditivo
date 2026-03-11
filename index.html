@@ -13,8 +13,8 @@
 
         <header>
             <div class="eyebrow">Entrenamiento auditivo</div>
-            <h1>Oído Armónico<br><em>Inversiones de Acordes</em></h1>
-            <div class="sub">Explorar · escuchar · identificar</div>
+            <h1>Oído Armónico</h1>
+            <div class="sub">acordes · inversiones · grados · dictado</div>
         </header>
 
         <div class="tabs">
@@ -22,6 +22,7 @@
             <button class="tab-btn" onclick="switchTab('explorar')">② Explorar</button>
             <button class="tab-btn" onclick="switchTab('practicar')">③ Inversiones</button>
             <button class="tab-btn" onclick="switchTab('grados')">④ Grados</button>
+            <button class="tab-btn" onclick="switchTab('dictado')">⑤ Dictado</button>
         </div>
 
         <!-- ══════════════════════════════════════════
@@ -123,9 +124,11 @@
      TAB 2 — EXPLORAR
 ══════════════════════════════════════════ -->
         <div class="tab-panel" id="tab-explorar">
+            <div class="tab-intro">
+                <div class="tab-intro-title">Explorador de acordes</div>
+                <div class="tab-intro-desc">Tocá cualquier acorde para escucharlo — los detalles aparecen en un panel abajo sin perderte de lugar en la lista. Usá los filtros para navegar entre los 72 acordes.</div>
+            </div>
             <div class="explorer-area">
-                <h3>Explorador de acordes</h3>
-                <div class="exp-sub">Toca cualquier acorde para escucharlo y ver su análisis completo.</div>
 
                 <div class="filter-row">
                     <span class="filter-label">filtrar:</span>
@@ -155,7 +158,7 @@
 
                 <div class="chord-tiles" id="chordTiles"></div>
 
-            </div>
+            </div><!-- end .explorer-area -->
         </div>
 
         <!-- ══════════════════════════════════════════
@@ -163,7 +166,12 @@
 ══════════════════════════════════════════ -->
         <div class="tab-panel" id="tab-practicar">
 
-            <span class="sec-label">Referencia rápida (siempre visible)</span>
+            <div class="tab-intro">
+                <div class="tab-intro-title">Quiz de inversiones</div>
+                <div class="tab-intro-desc">Presioná <strong>▶</strong> para escuchar un acorde. Luego respondé los 3 pasos: calidad (mayor/menor) → posición (fundamental, 1ª, 2ª) → intervalos desde el bajo. El sistema te muestra más los acordes que más te cuestan.</div>
+            </div>
+
+            <span class="sec-label">Referencia rápida</span>
             <div class="ref-grid" style="margin-bottom:1.5rem;">
                 <div class="ref-card">
                     <div class="pos-name"><span class="pos-dot dot-fund"></span>Fundamental</div>
@@ -302,6 +310,11 @@
 ══════════════════════════════════════════ -->
         <div class="tab-panel" id="tab-grados">
 
+            <div class="tab-intro">
+                <div class="tab-intro-title">Grados tonales y progresiones</div>
+                <div class="tab-intro-desc">Elegí el modo abajo. En <strong>Grados solos</strong>: escuchás el contexto (Do Mayor) seguido de un acorde misterio — identificá a cuál de los 6 grados pertenece. En <strong>Progresiones</strong>: escuchás una secuencia completa y la identificás acorde a acorde.</div>
+            </div>
+
             <!-- Sub-mode selector -->
             <div class="grados-mode-selector">
                 <button class="gm-btn gm-active" id="gmGrados" onclick="switchGradosMode('grados')">Grados solos</button>
@@ -311,8 +324,11 @@
             <!-- ── GRADOS SECTION ── -->
             <div id="gradosSection">
 
-                <span class="sec-label">Los 5 grados diatónicos de Do Mayor — su función y color</span>
-                <div class="deg-ref-grid" id="degRefGrid"></div>
+                <div class="ref-toggle-row">
+                    <span class="sec-label" style="margin:0">Los 6 grados diatónicos de Do Mayor</span>
+                    <button class="ref-toggle-btn" id="toggleRefBtn" onclick="toggleGradosRef()">ver referencia ↓</button>
+                </div>
+                <div class="deg-ref-grid ref-hidden" id="degRefGrid"></div>
 
                 <div class="quiz-area">
                     <div class="play-zone">
@@ -359,8 +375,11 @@
             <!-- ── PROGRESIONES SECTION ── -->
             <div id="progresionesSection" style="display:none">
 
-                <span class="sec-label">Progresiones armónicas de Do Mayor — escucha y reconoce</span>
-                <div class="prog-ref-grid" id="progRefGrid"></div>
+                <div class="ref-toggle-row">
+                    <span class="sec-label" style="margin:0">13 progresiones de Do Mayor</span>
+                    <button class="ref-toggle-btn" id="toggleProgRefBtn" onclick="toggleProgRef()">ver referencia ↓</button>
+                </div>
+                <div class="prog-ref-grid ref-hidden" id="progRefGrid"></div>
 
                 <div class="quiz-area">
                     <div class="play-zone">
@@ -404,7 +423,102 @@
                 </div>
                 <div class="hist-bar" id="hist-progresiones"></div>
 
+                <!-- ── CONSTRUCTOR DE PROGRESIONES PROPIAS ── -->
+                <div class="custom-progs-area">
+                    <span class="sec-label">Agregar progresión propia al banco</span>
+                    <div class="custom-builder-zone">
+                        <div class="custom-builder-hint">Tocá los grados para construir tu secuencia (mín. 2, máx. 8 acordes)</div>
+                        <div class="deg-btn-grid" id="customDegPicker"></div>
+                        <div class="custom-builder-preview-row">
+                            <div class="custom-builder-preview" id="customProgPreview">—</div>
+                            <span class="custom-prog-count" id="customProgCount">0/6</span>
+                            <button class="custom-undo-btn" onclick="customBuilderRemoveLast()">↩</button>
+                        </div>
+                        <div class="custom-builder-save-row">
+                            <input type="text" class="custom-prog-name-input" id="customProgName" placeholder="nombre de la progresión…" maxlength="40" />
+                            <button class="custom-prog-save-btn" id="customProgSaveBtn" onclick="submitCustomProg()" disabled>Guardar</button>
+                        </div>
+                    </div>
+                    <div class="custom-prog-list" id="customProgList"></div>
+                </div>
+
             </div><!-- end #progresionesSection -->
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+     TAB 5 — DICTADO ISÓCRONO
+══════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-dictado">
+
+            <div class="tab-intro">
+                <div class="tab-intro-title">Dictado isócrono</div>
+                <div class="tab-intro-desc">Elegí una escala (5 notas) y la velocidad. Presioná <strong>▶</strong> — la app toca 10 notas seguidas a intervalos iguales. La primera nota te la regala como referencia. Identificá las 9 restantes usando el teclado. Podés repetir la secuencia tantas veces como necesités.</div>
+            </div>
+
+            <span class="sec-label">Configurar</span>
+            <div class="dict-config-area">
+                <div class="dict-config-row">
+                    <span class="filter-label">escala:</span>
+                    <button class="dict-set-btn ds-active" onclick="selectDictadoSet('do5',this)">Do Mayor</button>
+                    <button class="dict-set-btn" onclick="selectDictadoSet('sol5',this)">Sol Mayor</button>
+                    <button class="dict-set-btn" onclick="selectDictadoSet('fa5',this)">Fa Mayor</button>
+                    <button class="dict-set-btn" onclick="selectDictadoSet('sib5',this)">Sib Mayor</button>
+                    <button class="dict-set-btn" onclick="selectDictadoSet('mib5',this)">Mib Mayor</button>
+                    <button class="dict-set-btn" onclick="selectDictadoSet('re5',this)">Re Mayor</button>
+                </div>
+                <div class="dict-config-row">
+                    <span class="filter-label">velocidad:</span>
+                    <button class="dict-tempo-btn ds-active" onclick="selectDictadoTempo('lento',this)">♩ lento</button>
+                    <button class="dict-tempo-btn" onclick="selectDictadoTempo('normal',this)">♩♩ normal</button>
+                    <button class="dict-tempo-btn" onclick="selectDictadoTempo('rapido',this)">♩♩♩ rápido</button>
+                </div>
+                <div class="dict-notes-display" id="dictNotesList">
+                    notas: <strong>Do · Re · Mi · Fa · Sol</strong>
+                    <span class="dict-armadura">sin alteraciones</span>
+                </div>
+            </div>
+
+            <div class="quiz-area">
+                <div class="play-zone">
+                    <button class="big-play-btn" id="dictadoPlayBtn" onclick="startDictadoRound()">▶</button>
+                    <div class="play-hint" id="dictadoPlayHint">toca para escuchar la secuencia</div>
+                    <button class="repeat-btn" id="dictadoRepeatBtn" onclick="repeatDictado()" disabled>↺ repetir secuencia</button>
+                </div>
+
+                <div class="dict-slots-area">
+                    <div class="dict-slots-hint">secuencia de 10 notas — identifica cada una en orden</div>
+                    <div class="dict-slots" id="dictadoSlots"></div>
+                </div>
+
+                <div class="dict-keyboard-area">
+                    <div class="dict-keyboard" id="dictadoKeyboard"></div>
+                </div>
+
+                <div class="reveal-panel" id="dictadoRevealPanel">
+                    <div class="rev-name" id="dictadoRevPercent">—</div>
+                    <div class="rev-sub" id="dictadoRevMsg">—</div>
+                    <button class="next-btn" onclick="startDictadoRound()">→ nueva secuencia</button>
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-part">
+                    <div class="score-label">Ronda</div>
+                    <div class="score-val" id="dictadoRoundVal">—</div>
+                </div>
+                <div class="score-divider"></div>
+                <div class="score-part">
+                    <div class="score-label">Ronda actual</div>
+                    <div class="score-val" id="dictadoScore">—</div>
+                </div>
+                <div class="score-divider"></div>
+                <div class="score-part">
+                    <div class="score-label">Total acumulado</div>
+                    <div class="score-val" id="dictadoTotal">0/0</div>
+                </div>
+            </div>
+            <div class="hist-bar" id="hist-dictado"></div>
 
         </div>
 
@@ -445,6 +559,34 @@
                 </thead>
                 <tbody id="ddIntBody"></tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- FAB de análisis -->
+    <button class="analysis-fab" onclick="openAnalysis()" title="Ver análisis de progreso">📊</button>
+
+    <!-- Modal de análisis -->
+    <div class="analysis-modal-bg" id="analysisModalBg" onclick="closeAnalysis()">
+        <div class="analysis-modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeAnalysis()">✕</button>
+            <div class="am-title">Mi progreso</div>
+
+            <div class="am-section">
+                <span class="am-section-label">Grados tonales</span>
+                <div id="amGrados"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Inversiones — por tipo</span>
+                <div id="amInversiones"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Dictado — por nota</span>
+                <div id="amDictado"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Recomendaciones</span>
+                <div id="amRecom"></div>
+            </div>
         </div>
     </div>
 
