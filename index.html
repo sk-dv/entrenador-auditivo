@@ -168,9 +168,22 @@
 
             <div class="tab-intro">
                 <div class="tab-intro-title">Quiz de inversiones</div>
-                <div class="tab-intro-desc">Presioná <strong>▶</strong> para escuchar un acorde. Luego respondé los 3 pasos: calidad (mayor/menor) → posición (fundamental, 1ª, 2ª) → intervalos desde el bajo. El sistema te muestra más los acordes que más te cuestan.</div>
+                <div class="tab-intro-desc">Elegí el modo. <strong>Quiz completo</strong>: 3 pasos (calidad → posición → intervalos). <strong>Solo posición</strong>: distingue Fundamental / 1ª / 2ª en una secuencia de 10 acordes — podés filtrar por Mayor, menor o ambos.</div>
             </div>
 
+            <!-- Mode selector -->
+            <div class="practicar-mode-selector">
+                <button class="pm-btn pm-active" id="pmCompleto" onclick="switchPracticarMode('completo')">Quiz completo</button>
+                <button class="pm-btn" id="pmPosicion" onclick="switchPracticarMode('posicion')">Solo posición</button>
+            </div>
+
+            <!-- ── COMPLETO SECTION ── -->
+            <div id="completoSection">
+            <div class="adap-panel" id="invProgressPanel">
+                <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por posición</span>
+                <div id="invProgBars"></div>
+                <div class="adap-focus" id="invFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+            </div>
             <span class="sec-label">Referencia rápida</span>
             <div class="ref-grid" style="margin-bottom:1.5rem;">
                 <div class="ref-card">
@@ -302,6 +315,100 @@
                 </div>
             </div>
             <div class="hist-bar" id="hist-inversiones"></div>
+            </div><!-- end #completoSection -->
+
+            <!-- ── SOLO POSICIÓN SECTION ── -->
+            <div id="posicionSection" style="display:none">
+
+                <div class="pos-quality-row">
+                    <span class="filter-label">calidad:</span>
+                    <button class="seq-quality-btn sq-active" onclick="setSeqQuality('ambos',this)">Mayor y menor</button>
+                    <button class="seq-quality-btn" onclick="setSeqQuality('mayor',this)">Solo mayor</button>
+                    <button class="seq-quality-btn" onclick="setSeqQuality('menor',this)">Solo menor</button>
+                </div>
+
+                <!-- Panel de progreso acumulado -->
+                <div class="adap-panel" id="posProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por posición</span>
+                    <div id="posProgBars"></div>
+                    <div class="adap-focus" id="posFocusHint">Hacé al menos una secuencia para ver recomendaciones.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="seqPlayBtn" onclick="startSeqRound()">▶</button>
+                        <div class="play-hint" id="seqPlayHint">toca para comenzar la secuencia</div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="seqRepeatBtn" onclick="repeatSeq()" disabled>↺ repetir este acorde</button>
+                    </div>
+
+                    <div class="seq-slots-area">
+                        <div class="seq-slots-hint">10 acordes — identificá la posición de cada uno en orden</div>
+                        <div class="seq-slots" id="seqSlots"></div>
+                    </div>
+
+                    <div class="quiz-steps">
+                        <div class="q-step active" id="seqStep">
+                            <div class="q-step-header">
+                                <div class="q-step-title" id="seqStepTitle">¿Qué posición es?</div>
+                            </div>
+                            <div class="choice-row">
+                                <button class="choice-btn seq-choice-btn" onclick="answerSeq('fundamental')">Fundamental<br><small style="font-size:0.6rem;opacity:0.6">estable · reposa</small></button>
+                                <button class="choice-btn seq-choice-btn" onclick="answerSeq('primera')">1ª Inversión<br><small style="font-size:0.6rem;opacity:0.6">suave · atenúa</small></button>
+                                <button class="choice-btn seq-choice-btn" onclick="answerSeq('segunda')">2ª Inversión<br><small style="font-size:0.6rem;opacity:0.6">tenso · suspende</small></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reveal-panel" id="seqRevealPanel">
+                        <div class="rev-name" id="seqRevScore">—</div>
+                        <div class="rev-sub" id="seqRevMsg">—</div>
+                        <div class="seq-reveal-list" id="seqRevealList"></div>
+                        <button class="next-btn" onclick="startSeqRound()">→ nueva secuencia</button>
+                    </div>
+                </div>
+
+                <div class="hist-bar" id="hist-posicion"></div>
+
+                <!-- ── BANCO DE SECUENCIAS PROPIAS ── -->
+                <div class="custom-progs-area">
+                    <span class="sec-label">Agregar secuencia propia al banco</span>
+                    <div class="custom-builder-zone">
+                        <div class="custom-builder-hint">Elegí la calidad y tocá las posiciones para construir tu secuencia (mín. 2, máx. 10)</div>
+
+                        <div class="cseq-quality-row">
+                            <span class="filter-label">calidad:</span>
+                            <button class="cseq-q-btn cq-active" onclick="setCseqQuality('ambos',this)">Mayor y menor</button>
+                            <button class="cseq-q-btn" onclick="setCseqQuality('mayor',this)">Solo mayor</button>
+                            <button class="cseq-q-btn" onclick="setCseqQuality('menor',this)">Solo menor</button>
+                        </div>
+
+                        <div class="cseq-pos-picker">
+                            <button class="cseq-pos-btn cpb-fund" onclick="cseqAdd('fundamental')">Fundamental</button>
+                            <button class="cseq-pos-btn cpb-inv1" onclick="cseqAdd('primera')">1ª Inversión</button>
+                            <button class="cseq-pos-btn cpb-inv2" onclick="cseqAdd('segunda')">2ª Inversión</button>
+                        </div>
+
+                        <div class="custom-builder-preview-row">
+                            <div class="custom-builder-preview" id="cseqPreview">—</div>
+                            <span class="custom-prog-count" id="cseqCount">0/10</span>
+                            <button class="custom-undo-btn" onclick="cseqRemoveLast()">↩</button>
+                        </div>
+
+                        <div class="custom-builder-save-row">
+                            <input type="text" class="custom-prog-name-input" id="cseqName" placeholder="nombre de la secuencia…" maxlength="40" />
+                            <button class="custom-prog-save-btn" id="cseqSaveBtn" onclick="cseqSubmit()" disabled>Guardar</button>
+                        </div>
+                    </div>
+
+                    <div class="custom-prog-list" id="cseqList"></div>
+                </div>
+
+            </div><!-- end #posicionSection -->
 
         </div>
 
@@ -323,6 +430,12 @@
 
             <!-- ── GRADOS SECTION ── -->
             <div id="gradosSection">
+
+                <div class="adap-panel" id="gradosProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por grado tonal</span>
+                    <div id="gradosProgBars"></div>
+                    <div class="adap-focus" id="gradosFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+                </div>
 
                 <div class="ref-toggle-row">
                     <span class="sec-label" style="margin:0">Los 6 grados diatónicos de Do Mayor</span>
@@ -374,6 +487,12 @@
 
             <!-- ── PROGRESIONES SECTION ── -->
             <div id="progresionesSection" style="display:none">
+
+                <div class="adap-panel" id="progProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso — progresiones más difíciles</span>
+                    <div id="progProgBars"></div>
+                    <div class="adap-focus" id="progFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+                </div>
 
                 <div class="ref-toggle-row">
                     <span class="sec-label" style="margin:0">13 progresiones de Do Mayor</span>
@@ -479,6 +598,12 @@
                     notas: <strong>Do · Re · Mi · Fa · Sol</strong>
                     <span class="dict-armadura">sin alteraciones</span>
                 </div>
+            </div>
+
+            <div class="adap-panel" id="dictProgressPanel">
+                <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por nota</span>
+                <div id="dictProgBars"></div>
+                <div class="adap-focus" id="dictFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
             </div>
 
             <div class="quiz-area">

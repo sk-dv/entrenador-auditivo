@@ -1502,6 +1502,244 @@
         font-style: italic;
     }
 
+    /* ── PRACTICAR MODE SELECTOR ── */
+    .practicar-mode-selector {
+        display: flex;
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .pm-btn {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        background: transparent;
+        border: none;
+        border-right: 1px solid var(--ink);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-mid);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pm-btn:last-child { border-right: none; }
+
+    .pm-btn.pm-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .pm-btn:not(.pm-active):hover {
+        background: rgba(26,23,20,0.06);
+        color: var(--ink);
+    }
+
+    /* ── POSICIÓN / SECUENCIA — QUALITY FILTER ── */
+    .pos-quality-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .pos-quality-btn, .seq-quality-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        padding: 0.38rem 0.85rem;
+        border: 1px solid var(--ink);
+        background: var(--bg);
+        color: var(--ink-mid);
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pos-quality-btn.pq-active,
+    .seq-quality-btn.sq-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .pos-quality-btn:not(.pq-active):hover,
+    .seq-quality-btn:not(.sq-active):hover {
+        background: rgba(26,23,20,0.06);
+        color: var(--ink);
+    }
+
+    /* ── PANEL DE PROGRESO ADAPTATIVO (todas las secciones) ── */
+    .adap-panel {
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 1rem 1.1rem 0.9rem;
+        margin-bottom: 1.5rem;
+        background: var(--paper);
+    }
+
+    .adap-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.45rem;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+    }
+
+    .adap-label {
+        min-width: 7rem;
+        color: var(--ink-mid);
+    }
+
+    .adap-track {
+        flex: 1;
+        height: 5px;
+        background: var(--rule);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .adap-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.4s ease;
+    }
+
+    .adap-pct {
+        min-width: 2.5rem;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    .adap-count {
+        color: var(--ink-faint);
+        font-size: 0.65rem;
+        min-width: 3.5rem;
+    }
+
+    .adap-nodata {
+        color: var(--ink-faint);
+        font-size: 0.68rem;
+        font-style: italic;
+    }
+
+    .adap-focus {
+        margin-top: 0.75rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid var(--rule);
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--ink-mid);
+        line-height: 1.5;
+    }
+
+    .adap-focus strong { color: var(--ink); }
+
+    /* ── SECUENCIA — SLOTS ── */
+    .seq-slots-area {
+        margin: 0 0 1.5rem;
+    }
+
+    .seq-slots-hint {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 0.65rem;
+        text-align: center;
+    }
+
+    .seq-slots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        justify-content: center;
+    }
+
+    .seq-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 4.2rem;
+        padding: 0.4rem 0.25rem 0.35rem;
+        border: 1.5px solid var(--rule);
+        border-radius: 3px;
+        background: var(--bg);
+        opacity: 0.55;
+        transition: all 0.2s;
+        cursor: default;
+    }
+
+    .seq-slot.seq-active {
+        opacity: 1;
+        border-color: var(--ink);
+        border-width: 2px;
+        background: var(--ink);
+        color: var(--bg);
+        box-shadow: 0 0 0 2px rgba(26,23,20,0.1);
+    }
+
+    .seq-slot.seq-correct {
+        opacity: 1;
+        border-color: var(--correct);
+        background: rgba(76,175,125,0.1);
+        color: var(--correct);
+    }
+
+    .seq-slot.seq-wrong {
+        opacity: 1;
+        border-color: var(--wrong);
+        background: rgba(224,90,74,0.1);
+        color: var(--wrong);
+    }
+
+    .seq-slot-num {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.58rem;
+        opacity: 0.55;
+        margin-bottom: 0.15rem;
+    }
+
+    .seq-slot-ans {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        font-weight: 500;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    /* ── SECUENCIA — REVEAL LIST ── */
+    .seq-reveal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        margin: 0.75rem 0 1rem;
+        text-align: left;
+        font-size: 0.72rem;
+        font-family: 'IBM Plex Mono', monospace;
+        max-height: 14rem;
+        overflow-y: auto;
+    }
+
+    .seq-reveal-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 2px;
+    }
+
+    .seq-reveal-row.sr-correct { background: rgba(76,175,125,0.1); color: var(--correct); }
+    .seq-reveal-row.sr-wrong   { background: rgba(224,90,74,0.1);  color: var(--wrong); }
+
+    .seq-reveal-num { opacity: 0.5; min-width: 1.2rem; }
+    .seq-reveal-chord { font-style: italic; flex: 1; }
+    .seq-reveal-mark { font-weight: 700; }
+
     /* ── GRADOS MODE SELECTOR ── */
     .grados-mode-selector {
         display: flex;
@@ -2121,6 +2359,127 @@
         flex-shrink: 0;
     }
     .cpi-delete-btn:hover { border-color: var(--wrong); color: var(--wrong); }
+
+    /* ── BANCO DE SECUENCIAS — BUILDER ── */
+    .cseq-quality-row {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .cseq-q-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        padding: 0.3rem 0.75rem;
+        border: 1px solid var(--ink);
+        background: var(--bg);
+        color: var(--ink-mid);
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 0.12s, color 0.12s;
+    }
+    .cseq-q-btn.cq-active { background: var(--ink); color: var(--bg); }
+
+    .cseq-pos-picker {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .cseq-pos-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.55rem 1rem;
+        border: 2px solid transparent;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: opacity 0.12s, transform 0.1s;
+        color: #fff;
+    }
+    .cseq-pos-btn:active { transform: scale(0.96); }
+
+    .cpb-fund { background: var(--fund-acc); }
+    .cpb-inv1 { background: var(--inv1-acc); }
+    .cpb-inv2 { background: var(--inv2-acc); }
+
+    /* chip de posición en el preview */
+    .cseq-chip {
+        display: inline-block;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        font-weight: 500;
+        padding: 0.15rem 0.45rem;
+        border-radius: 2px;
+        color: #fff;
+        margin: 0.1rem 0.15rem;
+        white-space: nowrap;
+    }
+    .cseq-chip-fund { background: var(--fund-acc); }
+    .cseq-chip-inv1 { background: var(--inv1-acc); }
+    .cseq-chip-inv2 { background: var(--inv2-acc); }
+
+    /* item guardado en lista */
+    .cseq-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 0.9rem;
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        margin-bottom: 0.5rem;
+        background: var(--paper);
+    }
+
+    .cseq-item-info { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
+
+    .cseq-item-name {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--ink);
+    }
+
+    .cseq-item-quality {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .cseq-item-chips { display: flex; flex-wrap: wrap; margin-top: 0.2rem; }
+
+    .cseq-item-actions { display: flex; gap: 0.4rem; align-items: center; }
+
+    .cseq-play-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        padding: 0.35rem 0.7rem;
+        border: 1.5px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        border-radius: 2px;
+        cursor: pointer;
+        transition: opacity 0.12s;
+    }
+    .cseq-play-btn:hover { opacity: 0.8; }
+
+    .cseq-del-btn {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.7rem;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid var(--rule);
+        background: transparent;
+        color: var(--ink-mid);
+        border-radius: 2px;
+        cursor: pointer;
+        transition: border-color 0.12s, color 0.12s;
+    }
+    .cseq-del-btn:hover { border-color: var(--wrong); color: var(--wrong); }
 
     /* ── ANÁLISIS DE PROGRESO ── */
     .analysis-fab {

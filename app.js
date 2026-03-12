@@ -4,6 +4,9 @@ function switchTab(name) {
         document.querySelectorAll('.tab-btn')[i].classList.toggle('active', n === name);
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
+    if (name === 'practicar') { updateInvProgress(); updatePosProgress(); }
+    if (name === 'grados')    { updateGradosProgress(); updateProgProgress(); }
+    if (name === 'dictado')   { updateDictProgress(); }
 }
 
 // ─── AUDIO ───────────────────────────────────────────────────────
@@ -399,6 +402,7 @@ function showReveal() {
     ].map(p => `<span class="rev-pill ${p.a ? 'acc' : ''}">${p.t}</span>`).join('');
     document.getElementById('revealPanel').classList.add('visible');
     guardarRonda('inversiones', scores.s1[0]+scores.s2[0]+scores.s3[0], scores.s1[1]+scores.s2[1]+scores.s3[1]);
+    updateInvProgress(); renderHistorial('inversiones');
 }
 
 function updateScoreUI() {
@@ -586,6 +590,7 @@ function answerDegree(num) {
     document.getElementById('degRevealPanel').classList.add('visible');
     document.getElementById('degScore').textContent = `${degScores[0]}/${degScores[1]}`;
     guardarRonda('grados', degScores[0], degScores[1]);
+    updateGradosProgress(); renderHistorial('grados');
 }
 
 // ─── PROGRESIONES ────────────────────────────────────────────────
@@ -712,6 +717,8 @@ function switchGradosMode(mode) {
     document.getElementById('progresionesSection').style.display = mode === 'progresiones' ? '' : 'none';
     document.getElementById('gmGrados').classList.toggle('gm-active', mode === 'grados');
     document.getElementById('gmProg').classList.toggle('gm-active', mode === 'progresiones');
+    if (mode === 'grados') updateGradosProgress();
+    if (mode === 'progresiones') updateProgProgress();
 }
 
 function buildProgRef() {
@@ -989,6 +996,7 @@ function showProgReveal() {
     ).join('');
     document.getElementById('progRevealPanel').classList.add('visible');
     guardarRonda('progresiones', progScores[0], progScores[1]);
+    updateProgProgress(); renderHistorial('progresiones');
 }
 
 // ─── PROGRESO ─────────────────────────────────────────────────────
@@ -1046,7 +1054,7 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones','dictado'].forEach(renderHistorial);
+    ['inversiones','grados','progresiones','dictado','posicion'].forEach(renderHistorial);
 }
 
 // ─── DICTADO ISÓCRONO ─────────────────────────────────────────────
@@ -1258,6 +1266,7 @@ function showDictadoReveal() {
         dictadoScores[0] + '/' + dictadoScores[1];
     document.getElementById('dictadoRevealPanel').classList.add('visible');
     guardarRonda('dictado', ok, tot);
+    updateDictProgress(); renderHistorial('dictado');
 }
 
 function initDictado() {
@@ -1347,6 +1356,414 @@ function renderAnalysis() {
     }
 }
 
+// ─── PRACTICAR — MODE SELECTOR ────────────────────────────────────
+let practicarMode = 'completo';
+
+function switchPracticarMode(mode) {
+    practicarMode = mode;
+    ['completo', 'posicion'].forEach(m => {
+        document.getElementById(m + 'Section').style.display = m === mode ? '' : 'none';
+        const key = 'pm' + m.charAt(0).toUpperCase() + m.slice(1);
+        document.getElementById(key).classList.toggle('pm-active', m === mode);
+    });
+    if (mode === 'posicion') { updatePosProgress(); renderHistorial('posicion'); }
+    if (mode === 'completo') { updateInvProgress(); renderHistorial('inversiones'); }
+}
+
+// ─── SOLO POSICIÓN — secuencia de 10 acordes ──────────────────────
+let seqQuality = 'ambos';
+let seqChords = [];
+let seqIndex = 0;
+let seqCorrect = 0;
+let seqPhase = 'idle';
+let seqRepeatCount = 0;
+const SEQ_LENGTH = 10;
+
+const SEQ_TYPE_SHORT = { fundamental: 'Fund.', primera: '1ª Inv.', segunda: '2ª Inv.' };
+
+// Tips pedagógicos por tipo de posición
+const POS_TIPS = {
+    fundamental: 'Fundamental — buscá estabilidad y peso: el bajo es la raíz, el acorde suena "completo y en casa". Distancia desde el bajo: 3ª + 5ª.',
+    primera:     '1ª Inversión — buscá suavidad y fluidez: el bajo es la 3ª, el peso se alivia. Distancia desde el bajo: 3ª + 6ª.',
+    segunda:     '2ª Inversión — buscá tensión e inestabilidad: el bajo es la 5ª, genera una 4ª inestable. Distancia desde el bajo: 4ª + 6ª.',
+};
+
+function setSeqQuality(q, btn) {
+    seqQuality = q;
+    document.querySelectorAll('.seq-quality-btn').forEach(b => b.classList.remove('sq-active'));
+    btn.classList.add('sq-active');
+}
+
+function getSeqPool() {
+    if (seqQuality === 'ambos') return CHORDS;
+    return CHORDS.filter(c => c.quality === seqQuality);
+}
+
+// Selección adaptativa o desde secuencia personalizada
+function buildSeqChords() {
+    const pool = getSeqPool();
+
+    if (seqCustomPositions) {
+        // Modo custom: cada slot tiene posición fija, acorde al azar de esa posición
+        seqChords = seqCustomPositions.map(type => {
+            const filtered = pool.filter(c => c.type === type);
+            return rand(filtered.length ? filtered : pool);
+        });
+        seqCustomPositions = null; // resetear tras construir (una sola vuelta con esa secuencia)
+        seqCustomQuality   = null;
+        return;
+    }
+
+    // Modo adaptativo: tipos con peor precisión aparecen más
+    const types = ['fundamental', 'primera', 'segunda'];
+    const det = (cargarProgreso().detalle || {}).posicion || {};
+    const typeW = types.map(t => {
+        const [ok, tot] = det[t] || [0, 0];
+        const weight = tot < 5 ? 0.8 : Math.max(0.15, 1 - ok / tot);
+        return { item: t, weight };
+    });
+    seqChords = Array.from({ length: SEQ_LENGTH }, () => {
+        const chosenType = weightedPick(typeW);
+        const filtered = pool.filter(c => c.type === chosenType);
+        return rand(filtered.length ? filtered : pool);
+    });
+}
+
+// ─── PANEL DE PROGRESO ADAPTATIVO (genérico) ──────────────────────
+// items: array de claves, labels: {key: texto}, tips: {key: texto pedagógico}
+// minSamples: mínimo de respuestas para considerar el dato
+function renderAdapPanel(module, items, labels, tips, barsId, focusId, minSamples = 3) {
+    const det = (cargarProgreso().detalle || {})[module] || {};
+
+    document.getElementById(barsId).innerHTML = items.map(k => {
+        const [ok, tot] = det[k] || [0, 0];
+        if (tot === 0) return `<div class="adap-row">
+            <span class="adap-label">${labels[k]}</span>
+            <span class="adap-nodata">sin datos aún</span>
+        </div>`;
+        const pct = Math.round(ok / tot * 100);
+        const col = pct >= 80 ? 'var(--correct)' : pct >= 50 ? '#d4aa3e' : 'var(--wrong)';
+        return `<div class="adap-row">
+            <span class="adap-label">${labels[k]}</span>
+            <div class="adap-track"><div class="adap-fill" style="width:${pct}%;background:${col}"></div></div>
+            <span class="adap-pct" style="color:${col}">${pct}%</span>
+            <span class="adap-count">(${ok}/${tot})</span>
+        </div>`;
+    }).join('');
+
+    const focusEl = document.getElementById(focusId);
+    const withData = items.filter(k => (det[k] || [0, 0])[1] >= minSamples);
+    if (withData.length === 0) {
+        focusEl.textContent = 'Hacé algunos ejercicios para ver recomendaciones.';
+        return;
+    }
+    const sorted = [...withData].sort((a, b) => {
+        const pa = (det[a][0] || 0) / det[a][1];
+        const pb = (det[b][0] || 0) / det[b][1];
+        return pa - pb;
+    });
+    const weakest = sorted[0];
+    const pctW = Math.round((det[weakest][0] || 0) / det[weakest][1] * 100);
+    const allGood = pctW >= 80;
+    const tip = tips[weakest] || '';
+    focusEl.innerHTML = allGood
+        ? `<strong>¡Excelente!</strong> Dominás todo lo practicado. El sistema sigue alternando para consolidar.`
+        : `<strong>La próxima ronda prioriza:</strong> ${labels[weakest]} — ${tip} <em>(precisión: ${pctW}%)</em>`;
+}
+
+// Actualizadores por sección
+function updatePosProgress() {
+    renderAdapPanel(
+        'posicion',
+        ['fundamental', 'primera', 'segunda'],
+        { fundamental: 'Fundamental', primera: '1ª Inversión', segunda: '2ª Inversión' },
+        POS_TIPS,
+        'posProgBars', 'posFocusHint'
+    );
+}
+
+function updateInvProgress() {
+    renderAdapPanel(
+        'inversiones',
+        ['fundamental', 'primera', 'segunda'],
+        { fundamental: 'Fundamental', primera: '1ª Inversión', segunda: '2ª Inversión' },
+        POS_TIPS,
+        'invProgBars', 'invFocusHint'
+    );
+}
+
+function updateGradosProgress() {
+    const gradosTips = {
+        I:   'Tónica — buscá reposo absoluto, el acorde más estable. "Llegué."',
+        II:  'Supertónica — tensión suave y puente. Menor, pide moverse hacia V o IV.',
+        III: 'Mediante — oscuro e íntimo, comparte notas con I y V. Ambiguo.',
+        IV:  'Subdominante — cálido y amplio, se aleja del centro. "Me voy."',
+        V:   'Dominante — la tensión más fuerte, el Si pide resolver al Do. "Ahora."',
+        VI:  'Superdominante — el relativo menor, nostálgico y oscuro pero estable.',
+    };
+    renderAdapPanel(
+        'grados',
+        ['I', 'II', 'III', 'IV', 'V', 'VI'],
+        { I: 'I — Do M', II: 'II — Re m', III: 'III — Mi m', IV: 'IV — Fa M', V: 'V — Sol M', VI: 'VI — La m' },
+        gradosTips,
+        'gradosProgBars', 'gradosFocusHint'
+    );
+}
+
+function updateProgProgress() {
+    const det = (cargarProgreso().detalle || {}).progresiones || {};
+    // Mostrar solo las progresiones con datos, ordenadas de peor a mejor (máx 6)
+    const withData = PROGRESSIONS
+        .filter(p => (det[p.id] || [0, 0])[1] >= 2)
+        .sort((a, b) => {
+            const pa = (det[a.id][0] || 0) / det[a.id][1];
+            const pb = (det[b.id][0] || 0) / det[b.id][1];
+            return pa - pb;
+        })
+        .slice(0, 6);
+
+    if (withData.length === 0) {
+        document.getElementById('progProgBars').innerHTML = '';
+        document.getElementById('progFocusHint').textContent = 'Hacé algunos ejercicios para ver recomendaciones.';
+        return;
+    }
+    const items = withData.map(p => p.id);
+    const labels = Object.fromEntries(withData.map(p => [p.id, p.name]));
+    const tips = Object.fromEntries(withData.map(p => [p.id, p.chords.join(' → ')]));
+    renderAdapPanel('progresiones', items, labels, tips, 'progProgBars', 'progFocusHint', 2);
+}
+
+function updateDictProgress() {
+    const notes = dictadoSet.notes;
+    const noteTips = Object.fromEntries(notes.map(n => [n, `nota ${n} — escuchala como parte del pentacordio`]));
+    const noteLabels = Object.fromEntries(notes.map(n => [n, n]));
+    renderAdapPanel('dictado', notes, noteLabels, noteTips, 'dictProgBars', 'dictFocusHint', 3);
+}
+
+function renderSeqSlots() {
+    document.getElementById('seqSlots').innerHTML = seqChords.map((_, i) =>
+        `<div class="seq-slot" id="seq-slot-${i}">
+            <span class="seq-slot-num">${i + 1}</span>
+            <span class="seq-slot-ans" id="seq-slot-ans-${i}">?</span>
+        </div>`
+    ).join('');
+}
+
+function activateSeqSlot(i) {
+    document.querySelectorAll('.seq-slot').forEach((s, j) => {
+        s.classList.toggle('seq-active', j === i);
+    });
+    document.querySelectorAll('.seq-choice-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    seqRepeatCount = 0;
+    document.getElementById('seqStepTitle').textContent = `¿Qué posición es? — acorde ${i + 1} de ${seqChords.length}`;
+}
+
+function startSeqRound() {
+    buildSeqChords();
+    seqIndex = 0; seqCorrect = 0; seqPhase = 'answering';
+    seqRepeatCount = 0;
+    renderSeqSlots();
+    activateSeqSlot(0);
+    document.getElementById('seqRevealPanel').classList.remove('visible');
+    document.getElementById('seqRepeatBtn').disabled = false;
+    const btn = document.getElementById('seqPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+    playChord(seqChords[0].midis, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+    document.getElementById('seqPlayHint').textContent = `acorde 1 de ${seqChords.length}`;
+}
+
+function repeatSeq() {
+    if (seqPhase !== 'answering' || !seqChords[seqIndex]) return;
+    seqRepeatCount++;
+    playChord(seqChords[seqIndex].midis, playMode === 'arp' ? ARP_DELAYS[seqRepeatCount % ARP_DELAYS.length] : 0);
+}
+
+function answerSeq(type) {
+    if (seqPhase !== 'answering') return;
+    const c = seqChords[seqIndex];
+    const correct = type === c.type;
+    if (correct) seqCorrect++;
+
+    const order = ['fundamental', 'primera', 'segunda'];
+    const btns = document.querySelectorAll('.seq-choice-btn');
+    btns.forEach((b, i) => {
+        b.disabled = true;
+        if (order[i] === c.type && !correct) b.classList.add('reveal-correct');
+    });
+    btns[order.indexOf(type)].classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    const slot = document.getElementById(`seq-slot-${seqIndex}`);
+    document.getElementById(`seq-slot-ans-${seqIndex}`).textContent = SEQ_TYPE_SHORT[c.type];
+    slot.classList.remove('seq-active');
+    slot.classList.add(correct ? 'seq-correct' : 'seq-wrong');
+
+    registrarDetalle('posicion', c.type, correct);
+
+    seqIndex++;
+    const total = seqChords.length;
+    if (seqIndex >= total) {
+        seqPhase = 'done';
+        document.getElementById('seqRepeatBtn').disabled = true;
+        document.getElementById('seqPlayHint').textContent = 'secuencia completa';
+        document.getElementById('seqStepTitle').textContent = 'resultado final';
+
+        const pct = Math.round(seqCorrect / total * 100);
+        document.getElementById('seqRevScore').textContent = `${seqCorrect}/${total} — ${pct}%`;
+        document.getElementById('seqRevMsg').textContent =
+            pct === 100 ? '¡Perfecto! Oído impecable.' :
+            pct >= 80   ? '¡Muy bien! Seguí así.' :
+            pct >= 60   ? 'Buen trabajo, seguí practicando.' :
+                          'Sigue escuchando, el oído se entrena.';
+
+        document.getElementById('seqRevealList').innerHTML = seqChords.map((ch, i) => {
+            const wasCorrect = document.getElementById(`seq-slot-${i}`).classList.contains('seq-correct');
+            return `<div class="seq-reveal-row ${wasCorrect ? 'sr-correct' : 'sr-wrong'}">
+                <span class="seq-reveal-num">${i + 1}.</span>
+                <span class="seq-reveal-chord">${ch.name}</span>
+                <span class="seq-reveal-mark">${TYPE_LABELS[ch.type]}</span>
+                <span class="seq-reveal-mark">${wasCorrect ? '✓' : '✗'}</span>
+            </div>`;
+        }).join('');
+
+        document.getElementById('seqRevealPanel').classList.add('visible');
+        guardarRonda('posicion', seqCorrect, total);
+        updatePosProgress();
+        renderHistorial('posicion');
+    } else {
+        setTimeout(() => {
+            activateSeqSlot(seqIndex);
+            playChord(seqChords[seqIndex].midis, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+            document.getElementById('seqPlayHint').textContent = `acorde ${seqIndex + 1} de ${total}`;
+        }, 700);
+    }
+}
+
+// ─── BANCO DE SECUENCIAS PROPIAS ──────────────────────────────────
+const CLAVE_CUSTOM_SEQS = 'oido_custom_seqs_v1';
+const CSEQ_MAX = 10;
+
+const CSEQ_LABEL = { fundamental: 'Fund.', primera: '1ª Inv.', segunda: '2ª Inv.' };
+const CSEQ_CHIP_CLASS = { fundamental: 'cseq-chip-fund', primera: 'cseq-chip-inv1', segunda: 'cseq-chip-inv2' };
+const CSEQ_QUALITY_LABEL = { ambos: 'Mayor y menor', mayor: 'Solo mayor', menor: 'Solo menor' };
+
+let cseqBuilder = [];       // posiciones del builder actual
+let cseqBuilderQuality = 'ambos';
+let seqCustomPositions = null;  // null → adaptativo, array → secuencia fija
+let seqCustomQuality   = null;
+
+function cargarCustomSeqs() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_CUSTOM_SEQS)) || []; }
+    catch { return []; }
+}
+
+function setCseqQuality(q, btn) {
+    cseqBuilderQuality = q;
+    document.querySelectorAll('.cseq-q-btn').forEach(b => b.classList.remove('cq-active'));
+    btn.classList.add('cq-active');
+}
+
+function cseqAdd(type) {
+    if (cseqBuilder.length >= CSEQ_MAX) return;
+    cseqBuilder.push(type);
+    renderCseqPreview();
+}
+
+function cseqRemoveLast() {
+    cseqBuilder.pop();
+    renderCseqPreview();
+}
+
+function renderCseqPreview() {
+    const prev = document.getElementById('cseqPreview');
+    const count = document.getElementById('cseqCount');
+    const saveBtn = document.getElementById('cseqSaveBtn');
+    if (prev) prev.innerHTML = cseqBuilder.length === 0
+        ? '—'
+        : cseqBuilder.map(t =>
+            `<span class="cseq-chip ${CSEQ_CHIP_CLASS[t]}">${CSEQ_LABEL[t]}</span>`
+          ).join('');
+    if (count) count.textContent = cseqBuilder.length + '/' + CSEQ_MAX;
+    if (saveBtn) saveBtn.disabled = cseqBuilder.length < 2;
+}
+
+function cseqChipsHtml(positions) {
+    return positions.map(t =>
+        `<span class="cseq-chip ${CSEQ_CHIP_CLASS[t]}">${CSEQ_LABEL[t]}</span>`
+    ).join('');
+}
+
+function cseqSubmit() {
+    const nameEl = document.getElementById('cseqName');
+    const name = nameEl ? nameEl.value.trim() : '';
+    if (!name || cseqBuilder.length < 2) return;
+    const seqs = cargarCustomSeqs();
+    seqs.push({
+        id: 'cseq_' + Date.now(),
+        name,
+        quality: cseqBuilderQuality,
+        positions: [...cseqBuilder]
+    });
+    localStorage.setItem(CLAVE_CUSTOM_SEQS, JSON.stringify(seqs));
+    cseqBuilder = [];
+    if (nameEl) nameEl.value = '';
+    renderCseqPreview();
+    renderCseqList();
+}
+
+function deleteCseq(id) {
+    const seqs = cargarCustomSeqs().filter(s => s.id !== id);
+    localStorage.setItem(CLAVE_CUSTOM_SEQS, JSON.stringify(seqs));
+    renderCseqList();
+}
+
+function playCseq(id) {
+    const seq = cargarCustomSeqs().find(s => s.id === id);
+    if (!seq) return;
+    // Configurar calidad y posiciones fijas, luego iniciar ronda
+    seqCustomPositions = seq.positions;
+    seqCustomQuality   = seq.quality;
+    // Sincronizar botones de calidad visualmente
+    const qMap = { ambos: 0, mayor: 1, menor: 2 };
+    document.querySelectorAll('.seq-quality-btn').forEach((b, i) => {
+        b.classList.toggle('sq-active', i === (qMap[seq.quality] ?? 0));
+    });
+    seqQuality = seq.quality;
+    // Scroll al play button y empezar
+    document.getElementById('seqPlayBtn').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    startSeqRound();
+}
+
+function renderCseqList() {
+    const container = document.getElementById('cseqList');
+    if (!container) return;
+    const seqs = cargarCustomSeqs();
+    if (seqs.length === 0) {
+        container.innerHTML = '<span class="custom-prog-empty">sin secuencias guardadas</span>';
+        return;
+    }
+    container.innerHTML = seqs.map(s => `
+        <div class="cseq-item">
+            <div class="cseq-item-info">
+                <span class="cseq-item-name">${s.name}</span>
+                <span class="cseq-item-quality">${CSEQ_QUALITY_LABEL[s.quality] || s.quality} · ${s.positions.length} acordes</span>
+                <div class="cseq-item-chips">${cseqChipsHtml(s.positions)}</div>
+            </div>
+            <div class="cseq-item-actions">
+                <button class="cseq-play-btn" onclick="playCseq('${s.id}')">▶ tocar</button>
+                <button class="cseq-del-btn" onclick="deleteCseq('${s.id}')">✕</button>
+            </div>
+        </div>`
+    ).join('');
+}
+
+function initCseq() {
+    renderCseqPreview();
+    renderCseqList();
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────
 buildTiles();
 buildDegreeRef();
@@ -1355,3 +1772,10 @@ initCustomProgs();   // merge custom progs into PROGRESSIONS antes de buildProgR
 buildProgRef();
 initDictado();
 initHistoriales();
+initCseq();
+// Cargar paneles adaptativos con datos existentes
+updateInvProgress();
+updatePosProgress();
+updateGradosProgress();
+updateProgProgress();
+updateDictProgress();
