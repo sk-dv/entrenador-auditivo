@@ -23,6 +23,7 @@
             <button class="tab-btn" onclick="switchTab('practicar')">③ Inversiones</button>
             <button class="tab-btn" onclick="switchTab('grados')">④ Grados</button>
             <button class="tab-btn" onclick="switchTab('dictado')">⑤ Dictado</button>
+            <button class="tab-btn" onclick="switchTab('intervalos')">⑥ Intervalos</button>
         </div>
 
         <!-- ══════════════════════════════════════════
@@ -280,6 +281,8 @@
                     </div>
                 </div>
 
+                <div class="feedback-tip" id="invFeedback"></div>
+
                 <div class="reveal-panel" id="revealPanel">
                     <div class="rev-name" id="revName">—</div>
                     <div class="rev-sub" id="revSub">—</div>
@@ -315,6 +318,7 @@
                 </div>
             </div>
             <div class="hist-bar" id="hist-inversiones"></div>
+            <div class="racha-bar" id="racha-inversiones"></div>
             </div><!-- end #completoSection -->
 
             <!-- ── SOLO POSICIÓN SECTION ── -->
@@ -364,6 +368,8 @@
                         </div>
                     </div>
 
+                    <div class="feedback-tip" id="posFeedback"></div>
+
                     <div class="reveal-panel" id="seqRevealPanel">
                         <div class="rev-name" id="seqRevScore">—</div>
                         <div class="rev-sub" id="seqRevMsg">—</div>
@@ -373,6 +379,7 @@
                 </div>
 
                 <div class="hist-bar" id="hist-posicion"></div>
+                <div class="racha-bar" id="racha-posicion"></div>
 
                 <!-- ── BANCO DE SECUENCIAS PROPIAS ── -->
                 <div class="custom-progs-area">
@@ -459,6 +466,7 @@
                     </div>
 
                     <div class="deg-btn-grid" id="degBtnGrid"></div>
+                    <div class="feedback-tip" id="gradFeedback"></div>
 
                     <div class="reveal-panel" id="degRevealPanel">
                         <div class="rev-name" id="degRevTitle">—</div>
@@ -482,6 +490,7 @@
                     </div>
                 </div>
                 <div class="hist-bar" id="hist-grados"></div>
+                <div class="racha-bar" id="racha-grados"></div>
 
             </div><!-- end #gradosSection -->
 
@@ -520,6 +529,7 @@
                     <div class="prog-chord-previews" id="progChordPreviews" style="display:none"></div>
 
                     <div class="deg-btn-grid" id="progBtnGrid"></div>
+                    <div class="feedback-tip" id="progFeedback"></div>
 
                     <div class="reveal-panel" id="progRevealPanel">
                         <div class="rev-name" id="progRevTitle">—</div>
@@ -543,6 +553,7 @@
                     </div>
                 </div>
                 <div class="hist-bar" id="hist-progresiones"></div>
+                <div class="racha-bar" id="racha-progresiones"></div>
 
                 <!-- ── CONSTRUCTOR DE PROGRESIONES PROPIAS ── -->
                 <div class="custom-progs-area">
@@ -622,6 +633,8 @@
                     <div class="dict-keyboard" id="dictadoKeyboard"></div>
                 </div>
 
+                <div class="feedback-tip" id="dictFeedback"></div>
+
                 <div class="reveal-panel" id="dictadoRevealPanel">
                     <div class="rev-name" id="dictadoRevPercent">—</div>
                     <div class="rev-sub" id="dictadoRevMsg">—</div>
@@ -646,6 +659,64 @@
                 </div>
             </div>
             <div class="hist-bar" id="hist-dictado"></div>
+            <div class="racha-bar" id="racha-dictado"></div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════
+     TAB 6 — INTERVALOS
+══════════════════════════════════════════ -->
+        <div class="tab-panel" id="tab-intervalos">
+
+            <div class="tab-intro">
+                <div class="tab-intro-title">Quiz de intervalos</div>
+                <div class="tab-intro-desc">La app genera 10 intervalos al azar. Activá los que querés incluir en el sorteo, elegí la dirección y presioná <strong>▶</strong>.</div>
+            </div>
+
+            <span class="sec-label">Incluir en el sorteo</span>
+            <div class="int-picker" id="intPicker"></div>
+
+            <div class="mode-row" style="margin-bottom:1.75rem">
+                <span class="mode-label">dirección:</span>
+                <button class="mode-btn int-dir-btn m-active" onclick="setIntDirection('asc',this)">↑ ascendente</button>
+                <button class="mode-btn int-dir-btn" onclick="setIntDirection('desc',this)">↓ descendente</button>
+                <button class="mode-btn int-dir-btn" onclick="setIntDirection('simul',this)">■ simultáneo</button>
+            </div>
+
+            <!-- Slots -->
+            <div class="seq-slots-area" id="intSlotsArea" style="display:none">
+                <div class="seq-slots-hint" id="intQuizHint">intervalo 1 de 10</div>
+                <div class="seq-slots" id="intSeqSlots"></div>
+            </div>
+
+            <div class="quiz-area">
+                <div class="play-zone">
+                    <button class="big-play-btn" id="intPlayBtn" onclick="intAction()">▶</button>
+                    <div class="play-hint" id="intPlayHint">toca para comenzar</div>
+                    <button class="repeat-btn" id="intRepeatBtn" onclick="intPlayCurrent()" disabled>↺ repetir</button>
+                </div>
+
+                <div class="deg-btn-grid" id="intAnswerBtns"></div>
+
+                <div class="reveal-panel" id="intRevealPanel">
+                    <div class="rev-name" id="intRevScore">—</div>
+                    <div class="rev-sub" id="intRevMsg">—</div>
+                    <div class="seq-reveal-list" id="intRevealList"></div>
+                    <button class="next-btn" onclick="startIntTest()">→ nueva ronda</button>
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-part">
+                    <div class="score-label">Ronda</div>
+                    <div class="score-val" id="intRound">—</div>
+                </div>
+                <div class="score-divider"></div>
+                <div class="score-part">
+                    <div class="score-label">Acumulado</div>
+                    <div class="score-val" id="intScore">0/0</div>
+                </div>
+            </div>
 
         </div>
 
@@ -703,12 +774,24 @@
                 <div id="amGrados"></div>
             </div>
             <div class="am-section">
-                <span class="am-section-label">Inversiones — por tipo</span>
+                <span class="am-section-label">Inversiones — quiz completo</span>
                 <div id="amInversiones"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Inversiones — solo posición</span>
+                <div id="amPosicion"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Progresiones</span>
+                <div id="amProgresiones"></div>
             </div>
             <div class="am-section">
                 <span class="am-section-label">Dictado — por nota</span>
                 <div id="amDictado"></div>
+            </div>
+            <div class="am-section">
+                <span class="am-section-label">Rachas (rondas ≥ 70%)</span>
+                <div id="amRachas"></div>
             </div>
             <div class="am-section">
                 <span class="am-section-label">Recomendaciones</span>

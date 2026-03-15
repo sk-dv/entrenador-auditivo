@@ -1,6 +1,6 @@
 // ─── TAB ─────────────────────────────────────────────────────────
 function switchTab(name) {
-    ['aprender', 'explorar', 'practicar', 'grados', 'dictado'].forEach((n, i) => {
+    ['aprender', 'explorar', 'practicar', 'grados', 'dictado', 'intervalos'].forEach((n, i) => {
         document.querySelectorAll('.tab-btn')[i].classList.toggle('active', n === name);
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
@@ -238,6 +238,32 @@ function closeDrawer() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeAnalysis(); } });
 
+// ─── FEEDBACK PEDAGÓGICO ──────────────────────────────────────────
+const QUALITY_FEEDBACK = {
+    'mayor→menor': 'Mayor: la 3ª Mayor (4 st) lo hace brillante y abierto. Menor: 3ª menor (3 st) — un semitono abajo, más oscuro y tenso.',
+    'menor→mayor': 'Menor: la 3ª menor (3 st) da ese color oscuro y cerrado. Mayor: 3ª Mayor (4 st) — más brillante y estable.',
+};
+
+const POS_FEEDBACK = {
+    'fundamental→primera': '1ª Inversión: la 3ª está en el bajo — suena más ligero y fluido que la Fundamental (raíz en el bajo).',
+    'fundamental→segunda': '2ª Inversión: la 5ª en el bajo genera una 4ª muy inestable — buscá esa flotación tensa.',
+    'primera→fundamental': 'Fundamental: la raíz en el bajo da peso y reposo sólido — más cerrado que la 1ª Inversión (3ª en el bajo).',
+    'primera→segunda': '2ª Inversión: 4ª en el bajo, más inestable y flotante que la 1ª Inversión (3ª en el bajo).',
+    'segunda→fundamental': 'Fundamental: peso sólido, la raíz en el bajo — sin esa 4ª inestable de la 2ª Inversión.',
+    'segunda→primera': '1ª Inversión: 3ª en el bajo, suave y fluida — menos tensa que la 2ª Inversión (4ª en el bajo).',
+};
+
+function showFeedbackTip(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('visible');
+}
+function hideFeedbackTip(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+}
+
 // ─── QUIZ — INVERSIONES ───────────────────────────────────────────
 let current = null, roundNum = 0;
 let scores = { s1: [0, 0], s2: [0, 0], s3: [0, 0] };
@@ -313,6 +339,7 @@ function pickAdaptiveDictadoNote() {
 function startRound() {
     current = pickAdaptiveChord(); roundNum++; phase = 'step1';
     repeatCount = 0;
+    hideFeedbackTip('invFeedback');
     document.getElementById('playHint').textContent = 'escuchando… ↺ para repetir';
     document.getElementById('repeatBtn').disabled = false;
     document.getElementById('revealPanel').classList.remove('visible');
@@ -359,7 +386,10 @@ function answerStep1(answer) {
     const btns = document.getElementById('step1').querySelectorAll('.choice-btn');
     btns.forEach(b => b.disabled = true);
     btns[answer === 'mayor' ? 0 : 1].classList.add(correct ? 'selected-correct' : 'selected-wrong');
-    if (!correct) btns[current.quality === 'mayor' ? 0 : 1].classList.add('reveal-correct');
+    if (!correct) {
+        btns[current.quality === 'mayor' ? 0 : 1].classList.add('reveal-correct');
+        showFeedbackTip('invFeedback', QUALITY_FEEDBACK[answer + '→' + current.quality] || '');
+    } else { hideFeedbackTip('invFeedback'); }
     document.getElementById('step1').classList.replace('active', 'done');
     document.getElementById('step2').classList.add('active'); phase = 'step2';
 }
@@ -371,11 +401,15 @@ function answerStep2(answer) {
     const btns = document.getElementById('step2').querySelectorAll('.choice-btn');
     btns.forEach((b, i) => { b.disabled = true; if (order[i] === current.type && !correct) b.classList.add('reveal-correct'); });
     btns[order.indexOf(answer)].classList.add(correct ? 'selected-correct' : 'selected-wrong');
+    if (!correct) {
+        showFeedbackTip('invFeedback', POS_FEEDBACK[answer + '→' + current.type] || '');
+    } else { hideFeedbackTip('invFeedback'); }
     document.getElementById('step2').classList.replace('active', 'done');
     document.getElementById('step3').classList.add('active'); phase = 'step3';
 }
 
 function answerStep3(answer) {
+    hideFeedbackTip('invFeedback');
     const correct = INTERVAL_MAP[answer] === current.type; markStep(3, correct);
     const order = ['fund-int', 'inv1-int', 'inv2-int'];
     const btns = document.getElementById('step3').querySelectorAll('.choice-btn');
@@ -532,6 +566,7 @@ function playDegreeContext(degData, arpInterval) {
 }
 
 function startDegreeRound() {
+    hideFeedbackTip('gradFeedback');
     currentDegree = pickAdaptiveDegree(); degRound++; degPhase = 'answering';
     degRepeatCount = 0;
     document.getElementById('degPlayHint').textContent = 'escuchando…';
@@ -581,6 +616,12 @@ function answerDegree(num) {
     document.querySelector(`.deg-btn[data-deg="${num}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
 
     const d = currentDegree;
+    if (!correct) {
+        const answeredDeg = DEGREES.find(x => x.num === num);
+        const tip = `Era ${d.num} — ${d.chordName}: ${d.feeling}` +
+            (answeredDeg ? ` (confundiste con ${answeredDeg.num} — ${answeredDeg.chordName}: ${answeredDeg.feeling})` : '');
+        showFeedbackTip('gradFeedback', tip);
+    }
     document.getElementById('degRevTitle').textContent = `${d.num} — ${d.chordName}`;
     document.getElementById('degRevQuality').textContent = d.qualityLabel;
     document.getElementById('degRevQuality').className = 'deg-rev-quality ' + (d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor');
@@ -900,6 +941,7 @@ function playProgChordAt(i) {
 }
 
 function startProgRound() {
+    hideFeedbackTip('progFeedback');
     currentProg = weightedPick(adaptiveWeights(PROGRESSIONS, 'progresiones', p => p.id));
     progRound++;
     progSlot = 0;
@@ -963,7 +1005,15 @@ function answerProg(num) {
         slot.setAttribute('title', `Tu respuesta: ${num}`);
         const clickedBtn = document.querySelector(`#progBtnGrid .deg-btn[data-deg="${num}"]`);
         if (clickedBtn) { clickedBtn.classList.add('selected-wrong'); clickedBtn.disabled = true; }
+        const expDeg = DEGREES.find(d => d.num === expected);
+        const ansDeg = DEGREES.find(d => d.num === num);
+        if (expDeg) {
+            const tip = `Acorde ${progSlot + 1}: era ${expected} (${expDeg.chordName}) — ${expDeg.feeling}` +
+                (ansDeg ? ` · no ${num} (${ansDeg.chordName}: ${ansDeg.feeling})` : '');
+            showFeedbackTip('progFeedback', tip);
+        }
     } else {
+        hideFeedbackTip('progFeedback');
         const clickedBtn = document.querySelector(`#progBtnGrid .deg-btn[data-deg="${num}"]`);
         if (clickedBtn) { clickedBtn.classList.add('selected-correct'); clickedBtn.disabled = true; }
     }
@@ -1011,10 +1061,34 @@ function guardarRonda(modulo, correctas, total) {
     if (total === 0) return;
     const data = cargarProgreso();
     if (!data[modulo]) data[modulo] = [];
-    data[modulo].push({ ts: Date.now(), c: correctas, t: total, pct: Math.round(correctas / total * 100) });
+    const pct = Math.round(correctas / total * 100);
+    data[modulo].push({ ts: Date.now(), c: correctas, t: total, pct });
     if (data[modulo].length > 50) data[modulo] = data[modulo].slice(-50);
+    if (!data.streak) data.streak = {};
+    if (!data.streak[modulo]) data.streak[modulo] = { current: 0, best: 0 };
+    if (pct >= 70) {
+        data.streak[modulo].current++;
+        if (data.streak[modulo].current > data.streak[modulo].best)
+            data.streak[modulo].best = data.streak[modulo].current;
+    } else {
+        data.streak[modulo].current = 0;
+    }
     localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(data));
     renderHistorial(modulo);
+    renderRacha(modulo);
+}
+
+function renderRacha(modulo) {
+    const el = document.getElementById('racha-' + modulo);
+    if (!el) return;
+    const s = ((cargarProgreso().streak) || {})[modulo] || { current: 0, best: 0 };
+    if (s.current >= 3) {
+        el.innerHTML = `<span class="racha-fire">racha: ${s.current} seguidas</span><span class="racha-best"> · mejor: ${s.best}</span>`;
+    } else if (s.best >= 2) {
+        el.innerHTML = `<span class="racha-best">mejor racha: ${s.best}</span>`;
+    } else {
+        el.innerHTML = '';
+    }
 }
 
 // ─── DETALLE GRANULAR ─────────────────────────────────────────────
@@ -1054,7 +1128,10 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones','dictado','posicion'].forEach(renderHistorial);
+    ['inversiones','grados','progresiones','dictado','posicion'].forEach(m => {
+        renderHistorial(m);
+        renderRacha(m);
+    });
 }
 
 // ─── DICTADO ISÓCRONO ─────────────────────────────────────────────
@@ -1116,6 +1193,7 @@ function selectDictadoTempo(id, el) {
 }
 
 function resetDictadoRound() {
+    hideFeedbackTip('dictFeedback');
     dictadoTimers.forEach(clearTimeout);
     dictadoTimers = [];
     stopAllNodes();
@@ -1225,7 +1303,14 @@ function answerDictado(note) {
     sl.textContent = expected;
     sl.classList.remove('ds-active');
     sl.classList.add(correct ? 'ds-correct' : 'ds-wrong');
-    if (!correct) sl.title = 'tu respuesta: ' + note;
+    if (!correct) {
+        sl.title = 'tu respuesta: ' + note;
+        const midiExp = dictadoSet.midis[dictadoSet.notes.indexOf(expected)];
+        const midiAns = dictadoSet.midis[dictadoSet.notes.indexOf(note)];
+        const diff = midiExp - midiAns;
+        const dir = diff > 0 ? `${diff} semitono(s) más arriba` : `${Math.abs(diff)} semitono(s) más abajo`;
+        showFeedbackTip('dictFeedback', `Era ${expected}, dijiste ${note} — estaba ${dir} de lo que escuchaste.`);
+    } else { hideFeedbackTip('dictFeedback'); }
 
     // Brief audio feedback: replay the correct note
     const midi = dictadoSet.midis[dictadoSet.notes.indexOf(expected)];
@@ -1303,19 +1388,32 @@ function renderAccBar(label, ok, tot) {
 }
 
 function renderAnalysis() {
-    const det = (cargarProgreso().detalle) || {};
+    const data = cargarProgreso();
+    const det  = data.detalle || {};
     const gdet = det.grados || {};
     const idet = det.inversiones || {};
+    const pdet = det.posicion || {};
     const ddet = det.dictado || {};
+    const prdet = det.progresiones || {};
 
     // Grados
     document.getElementById('amGrados').innerHTML =
         DEGREES.map(d => renderAccBar(`${d.num} — ${d.name}`, ...(gdet[d.num]||[0,0]))).join('');
 
-    // Inversiones
+    // Inversiones (quiz completo)
     const invLabels = { fundamental:'Fundamental', primera:'1ª Inversión', segunda:'2ª Inversión' };
     document.getElementById('amInversiones').innerHTML =
         ['fundamental','primera','segunda'].map(k => renderAccBar(invLabels[k], ...(idet[k]||[0,0]))).join('');
+
+    // Solo posición
+    document.getElementById('amPosicion').innerHTML =
+        ['fundamental','primera','segunda'].map(k => renderAccBar(invLabels[k], ...(pdet[k]||[0,0]))).join('');
+
+    // Progresiones — solo las practicadas
+    const progUsed = PROGRESSIONS.filter(p => (prdet[p.id]||[0,0])[1] > 0);
+    document.getElementById('amProgresiones').innerHTML = progUsed.length === 0
+        ? '<span class="am-nodata-msg">Practicá progresiones para ver datos aquí.</span>'
+        : progUsed.map(p => renderAccBar(p.name, ...(prdet[p.id]||[0,0]))).join('');
 
     // Dictado — solo notas usadas (tot > 0)
     const usedNotes = Object.keys(DETALLE_DEFAULTS.dictado).filter(k => (ddet[k]||[0,0])[1] > 0);
@@ -1323,11 +1421,23 @@ function renderAnalysis() {
         ? '<span class="am-nodata-msg">Practicá dictado para ver datos aquí.</span>'
         : usedNotes.map(k => renderAccBar(k, ...(ddet[k]||[0,0]))).join('');
 
-    // Recomendaciones
+    // Rachas
+    const streaks = data.streak || {};
+    const rachaLabels = { inversiones:'Inversiones', grados:'Grados', progresiones:'Progresiones', dictado:'Dictado', posicion:'Solo posición' };
+    document.getElementById('amRachas').innerHTML = Object.entries(rachaLabels).map(([k, label]) => {
+        const s = streaks[k] || { current: 0, best: 0 };
+        if (s.best === 0) return `<div class="am-bar-row"><span class="am-bar-label">${label}</span><span class="am-bar-nodata">sin datos</span></div>`;
+        const currBadge = s.current >= 3 ? `<span class="racha-fire" style="margin-left:0.5rem;font-size:0.65rem">${s.current} activa</span>` : '';
+        return `<div class="am-bar-row"><span class="am-bar-label">${label}</span><span class="am-bar-pct" style="color:var(--ink)">mejor: ${s.best}</span>${currBadge}</div>`;
+    }).join('');
+
+    // Recomendaciones (todas las fuentes)
     const items = [];
     DEGREES.forEach(d => { const [ok,tot]=gdet[d.num]||[0,0]; if(tot>=5) items.push({label:`Grado ${d.num}`,pct:ok/tot}); });
     usedNotes.forEach(k => { const [ok,tot]=ddet[k]||[0,0]; if(tot>=5) items.push({label:`Nota ${k} (dictado)`,pct:ok/tot}); });
-    ['fundamental','primera','segunda'].forEach(k => { const [ok,tot]=idet[k]||[0,0]; if(tot>=5) items.push({label:invLabels[k],pct:ok/tot}); });
+    ['fundamental','primera','segunda'].forEach(k => { const [ok,tot]=idet[k]||[0,0]; if(tot>=5) items.push({label:invLabels[k]+' (quiz)',pct:ok/tot}); });
+    ['fundamental','primera','segunda'].forEach(k => { const [ok,tot]=pdet[k]||[0,0]; if(tot>=5) items.push({label:invLabels[k]+' (posición)',pct:ok/tot}); });
+    progUsed.forEach(p => { const [ok,tot]=prdet[p.id]||[0,0]; if(tot>=5) items.push({label:p.name+' (prog)',pct:ok/tot}); });
     items.sort((a,b) => a.pct-b.pct);
     const weak   = items.filter(x => x.pct < 0.80).slice(0,3);
     const strong = items.filter(x => x.pct >= 0.85);
@@ -1562,6 +1672,7 @@ function activateSeqSlot(i) {
 }
 
 function startSeqRound() {
+    hideFeedbackTip('posFeedback');
     buildSeqChords();
     seqIndex = 0; seqCorrect = 0; seqPhase = 'answering';
     seqRepeatCount = 0;
@@ -1594,6 +1705,9 @@ function answerSeq(type) {
         if (order[i] === c.type && !correct) b.classList.add('reveal-correct');
     });
     btns[order.indexOf(type)].classList.add(correct ? 'selected-correct' : 'selected-wrong');
+    if (!correct) {
+        showFeedbackTip('posFeedback', POS_FEEDBACK[type + '→' + c.type] || '');
+    } else { hideFeedbackTip('posFeedback'); }
 
     const slot = document.getElementById(`seq-slot-${seqIndex}`);
     document.getElementById(`seq-slot-ans-${seqIndex}`).textContent = SEQ_TYPE_SHORT[c.type];
@@ -1764,6 +1878,212 @@ function initCseq() {
     renderCseqList();
 }
 
+// ─── INTERVALOS ───────────────────────────────────────────────────
+const ALL_INTERVALS = [
+    { id: 'm2', name: '2ª menor', semis: 1  },
+    { id: 'M2', name: '2ª Mayor', semis: 2  },
+    { id: 'm3', name: '3ª menor', semis: 3  },
+    { id: 'M3', name: '3ª Mayor', semis: 4  },
+    { id: 'P4', name: '4ª Justa', semis: 5  },
+    { id: 'TT', name: 'Tritono',  semis: 6  },
+    { id: 'P5', name: '5ª Justa', semis: 7  },
+    { id: 'm6', name: '6ª menor', semis: 8  },
+    { id: 'M6', name: '6ª Mayor', semis: 9  },
+    { id: 'm7', name: '7ª menor', semis: 10 },
+    { id: 'M7', name: '7ª Mayor', semis: 11 },
+    { id: 'P8', name: 'Octava',   semis: 12 },
+];
+
+const INT_MIDI_LOW  = 48; // Do3
+const INT_MIDI_HIGH = 72; // Do5 (2 octavas)
+const INT_ROUND_LEN = 10;
+
+let intDirection  = 'asc';
+let intActiveBank = new Set(ALL_INTERVALS.map(iv => iv.id)); // todos activos por defecto
+let intTestSeq    = [];   // [{iv, rootMidi, result}]
+let intTestIndex  = 0;
+let intTestPhase  = 'idle'; // 'idle' | 'answering' | 'done'
+let intRoundNum   = 0;
+let intTotalOk    = 0;
+let intTotalTot   = 0;
+
+function setIntDirection(dir, btn) {
+    intDirection = dir;
+    document.querySelectorAll('.int-dir-btn').forEach(b => b.classList.remove('m-active'));
+    if (btn) btn.classList.add('m-active');
+}
+
+function buildIntPicker() {
+    document.getElementById('intPicker').innerHTML = ALL_INTERVALS.map(iv =>
+        `<button class="int-bank-btn ib-active" id="ipick-${iv.id}" onclick="toggleIntPick('${iv.id}',this)">${iv.name}<small>${iv.semis} st</small></button>`
+    ).join('');
+}
+
+function toggleIntPick(id, btn) {
+    if (intActiveBank.has(id)) {
+        if (intActiveBank.size <= 2) return;
+        intActiveBank.delete(id);
+        btn.classList.remove('ib-active');
+    } else {
+        intActiveBank.add(id);
+        btn.classList.add('ib-active');
+    }
+}
+
+// ── Test ─────────────────────────────────────────────────────────
+function startIntTest() {
+    const pool = ALL_INTERVALS.filter(iv => intActiveBank.has(iv.id));
+    if (pool.length < 1) return;
+
+    // Generar 10 intervalos aleatorios del pool con roots al azar
+    intTestSeq = Array.from({ length: INT_ROUND_LEN }, () => {
+        const iv       = pool[Math.floor(Math.random() * pool.length)];
+        const rootMax  = INT_MIDI_HIGH - iv.semis;
+        const rootMidi = INT_MIDI_LOW + Math.floor(Math.random() * (rootMax - INT_MIDI_LOW + 1));
+        return { iv, rootMidi, result: null };
+    });
+    intTestIndex = 0;
+    intTestPhase = 'idle';
+    intRoundNum++;
+
+    document.getElementById('intRound').textContent = '#' + intRoundNum;
+    document.getElementById('intRevealPanel').classList.remove('visible');
+    document.getElementById('intSlotsArea').style.display = '';
+
+    // Slots
+    document.getElementById('intSeqSlots').innerHTML = intTestSeq.map((_, i) =>
+        `<div class="seq-slot" id="int-slot-${i}">
+            <div class="seq-slot-num">${i + 1}</div>
+            <div class="seq-slot-ans" id="int-slot-ans-${i}">?</div>
+        </div>`
+    ).join('');
+
+    // Botones de respuesta — todos los del banco activo
+    document.getElementById('intAnswerBtns').innerHTML = pool.map(iv =>
+        `<button class="deg-btn" id="iabtn-${iv.id}" onclick="answerInt('${iv.id}')">${iv.name}<br><small style="font-size:0.6rem;opacity:0.6">${iv.semis} st</small></button>`
+    ).join('');
+
+    intAdvanceToSlot(0);
+}
+
+function intAction() {
+    // El botón ▶ arranca la ronda si está idle, o repite si ya está en curso
+    if (intTestPhase === 'idle' && intTestSeq.length === 0) {
+        startIntTest();
+    } else {
+        startIntTest();
+    }
+}
+
+function intAdvanceToSlot(i) {
+    intTestIndex = i;
+    intTestPhase = 'idle';
+    document.getElementById('intQuizHint').textContent = `intervalo ${i + 1} de ${INT_ROUND_LEN}`;
+    document.querySelectorAll('#intSeqSlots .seq-slot').forEach(s => s.classList.remove('seq-active'));
+    const sl = document.getElementById('int-slot-' + i);
+    if (sl) sl.classList.add('seq-active');
+    document.querySelectorAll('#intAnswerBtns .deg-btn').forEach(b => {
+        b.disabled = true;
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+    });
+    document.getElementById('intRepeatBtn').disabled = true;
+    document.getElementById('intPlayHint').textContent = 'escuchando…';
+
+    const pb = document.getElementById('intPlayBtn');
+    pb.classList.add('ringing');
+    setTimeout(() => pb.classList.remove('ringing'), 400);
+    setTimeout(() => intPlayCurrent(), 200);
+}
+
+function intPlayCurrent() {
+    if (intTestIndex >= intTestSeq.length) return;
+    const { iv, rootMidi } = intTestSeq[intTestIndex];
+    intPlayAudio(iv, rootMidi);
+    intTestPhase = 'answering';
+    document.getElementById('intRepeatBtn').disabled = false;
+    document.getElementById('intPlayHint').textContent = '¿Qué intervalo escuchás?';
+    document.querySelectorAll('#intAnswerBtns .deg-btn').forEach(b => b.disabled = false);
+}
+
+function answerInt(id) {
+    if (intTestPhase !== 'answering') return;
+    intTestPhase = 'done';
+    const { iv, rootMidi } = intTestSeq[intTestIndex];
+    const correct = id === iv.id;
+    intTestSeq[intTestIndex].result = correct;
+
+    document.querySelectorAll('#intAnswerBtns .deg-btn').forEach(b => {
+        b.disabled = true;
+        if (b.id.replace('iabtn-', '') === iv.id && !correct) b.classList.add('reveal-correct');
+    });
+    const ab = document.getElementById('iabtn-' + id);
+    if (ab) ab.classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    const sl  = document.getElementById('int-slot-' + intTestIndex);
+    const rn  = NOTAS[rootMidi % 12];
+    const tn  = NOTAS[(rootMidi + iv.semis) % 12];
+    document.getElementById('int-slot-ans-' + intTestIndex).textContent = iv.id;
+    sl.classList.remove('seq-active');
+    sl.classList.add(correct ? 'seq-correct' : 'seq-wrong');
+    sl.title = `${rn} → ${tn}`;
+
+    document.getElementById('intPlayHint').textContent =
+        correct ? '¡Correcto!' : `Era: ${iv.name}`;
+
+    const next = intTestIndex + 1;
+    if (next >= INT_ROUND_LEN) {
+        setTimeout(showIntReveal, 600);
+    } else {
+        setTimeout(() => intAdvanceToSlot(next), 700);
+    }
+}
+
+function showIntReveal() {
+    const ok  = intTestSeq.filter(x => x.result).length;
+    const tot = INT_ROUND_LEN;
+    const pct = Math.round(ok / tot * 100);
+    intTotalOk  += ok;
+    intTotalTot += tot;
+
+    document.getElementById('intRevScore').textContent = `${ok}/${tot} — ${pct}%`;
+    document.getElementById('intRevMsg').textContent =
+        pct === 100 ? '¡Perfecto! Oído impecable.' :
+        pct >= 80   ? '¡Muy bien! Seguí así.' :
+        pct >= 60   ? 'Buen trabajo, seguí practicando.' :
+                      'Seguí escuchando, el oído se entrena.';
+    document.getElementById('intRevealList').innerHTML = intTestSeq.map((x, i) => {
+        const rn = NOTAS[x.rootMidi % 12];
+        const tn = NOTAS[(x.rootMidi + x.iv.semis) % 12];
+        return `<div class="seq-reveal-row ${x.result ? 'sr-correct' : 'sr-wrong'}">
+            <span class="seq-reveal-num">${i + 1}.</span>
+            <span class="seq-reveal-chord">${x.iv.name}</span>
+            <span class="seq-reveal-mark">${rn} → ${tn}</span>
+            <span class="seq-reveal-mark">${x.result ? '✓' : '✗'}</span>
+        </div>`;
+    }).join('');
+    document.getElementById('intScore').textContent = intTotalOk + '/' + intTotalTot;
+    document.getElementById('intRevealPanel').classList.add('visible');
+}
+
+function intPlayAudio(iv, rootMidi) {
+    stopAllNodes();
+    const a = ctx(), now = a.currentTime + 0.05;
+    if (intDirection === 'simul') {
+        playNote(rootMidi, now, 2.0);
+        playNote(rootMidi + iv.semis, now, 2.0);
+    } else if (intDirection === 'asc') {
+        playNote(rootMidi, now, 1.2);
+        playNote(rootMidi + iv.semis, now + 0.45, 1.5);
+    } else {
+        playNote(rootMidi + iv.semis, now, 1.2);
+        playNote(rootMidi, now + 0.45, 1.5);
+    }
+}
+
+function initIntervalos() {
+    buildIntPicker();
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────
 buildTiles();
 buildDegreeRef();
@@ -1773,6 +2093,7 @@ buildProgRef();
 initDictado();
 initHistoriales();
 initCseq();
+initIntervalos();
 // Cargar paneles adaptativos con datos existentes
 updateInvProgress();
 updatePosProgress();
