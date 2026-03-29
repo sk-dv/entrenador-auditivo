@@ -15,6 +15,7 @@ let ac;
 let masterOut = null;
 let masterGain = null;
 let activeNodes = [];
+let userVolume = parseFloat(localStorage.getItem('oido_volume') ?? '0.8');
 
 function ctx() {
     if (!ac) {
@@ -35,7 +36,7 @@ function ctx() {
         comp.release.value = 0.2;
 
         masterGain = ac.createGain();
-        masterGain.gain.value = 1;
+        masterGain.gain.value = userVolume;
         comp.connect(masterGain);
         masterGain.connect(lim);
         masterOut = comp;
@@ -49,13 +50,30 @@ function stopAllNodes() {
     if (masterGain && ac) {
         masterGain.gain.cancelScheduledValues(ac.currentTime);
         masterGain.gain.setValueAtTime(0, ac.currentTime);
-        masterGain.gain.linearRampToValueAtTime(1, ac.currentTime + 0.02);
+        masterGain.gain.linearRampToValueAtTime(userVolume, ac.currentTime + 0.02);
     }
     activeNodes.forEach(n => {
         try { n.disconnect(); } catch(e) {}
         try { n.stop(0); }    catch(e) {}
     });
     activeNodes = [];
+}
+
+function setMasterVolume(val) {
+    userVolume = parseFloat(val);
+    localStorage.setItem('oido_volume', userVolume);
+    if (masterGain && ac) {
+        masterGain.gain.cancelScheduledValues(ac.currentTime);
+        masterGain.gain.setValueAtTime(userVolume, ac.currentTime);
+    }
+    document.getElementById('volValue').textContent = Math.round(userVolume * 100) + '%';
+}
+
+function initVolSlider() {
+    const slider = document.getElementById('volSlider');
+    if (!slider) return;
+    slider.value = userVolume;
+    document.getElementById('volValue').textContent = Math.round(userVolume * 100) + '%';
 }
 
 function mfreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
@@ -1074,6 +1092,7 @@ function guardarRonda(modulo, correctas, total) {
         data.streak[modulo].current = 0;
     }
     localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(data));
+    if (window.FB) window.FB.push(data);
     renderHistorial(modulo);
     renderRacha(modulo);
 }
@@ -1107,6 +1126,7 @@ function registrarDetalle(modulo, key, correct) {
     data.detalle[modulo][key][1]++;
     if (correct) data.detalle[modulo][key][0]++;
     localStorage.setItem(CLAVE_PROGRESO, JSON.stringify(data));
+    if (window.FB) window.FB.push(data);
 }
 
 function renderHistorial(modulo) {
@@ -1128,7 +1148,7 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones','dictado','posicion'].forEach(m => {
+    ['inversiones','grados','progresiones','dictado','posicion','intervalos'].forEach(m => {
         renderHistorial(m);
         renderRacha(m);
     });
@@ -2011,6 +2031,7 @@ function answerInt(id) {
     const { iv, rootMidi } = intTestSeq[intTestIndex];
     const correct = id === iv.id;
     intTestSeq[intTestIndex].result = correct;
+    registrarDetalle('intervalos', iv.id, correct);
 
     document.querySelectorAll('#intAnswerBtns .deg-btn').forEach(b => {
         b.disabled = true;
@@ -2044,6 +2065,7 @@ function showIntReveal() {
     const pct = Math.round(ok / tot * 100);
     intTotalOk  += ok;
     intTotalTot += tot;
+    guardarRonda('intervalos', ok, tot);
 
     document.getElementById('intRevScore').textContent = `${ok}/${tot} — ${pct}%`;
     document.getElementById('intRevMsg').textContent =
@@ -2082,9 +2104,20 @@ function intPlayAudio(iv, rootMidi) {
 
 function initIntervalos() {
     buildIntPicker();
+    const hist = cargarProgreso()['intervalos'] || [];
+    if (hist.length > 0) {
+        intTotalOk  = hist.reduce((s, x) => s + x.c, 0);
+        intTotalTot = hist.reduce((s, x) => s + x.t, 0);
+        intRoundNum = hist.length;
+        document.getElementById('intRound').textContent = '#' + intRoundNum;
+        document.getElementById('intScore').textContent = intTotalOk + '/' + intTotalTot;
+    }
+    renderHistorial('intervalos');
+    renderRacha('intervalos');
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────
+initVolSlider();
 buildTiles();
 buildDegreeRef();
 buildProgBtns();

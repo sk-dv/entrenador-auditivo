@@ -15,6 +15,19 @@
             <div class="eyebrow">Entrenamiento auditivo</div>
             <h1>Oído Armónico</h1>
             <div class="sub">acordes · inversiones · grados · dictado</div>
+            <div class="header-controls">
+                <div class="vol-control">
+                    <span class="vol-label">vol</span>
+                    <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8"
+                           oninput="setMasterVolume(this.value)">
+                    <span class="vol-value" id="volValue">80%</span>
+                </div>
+                <div class="auth-control">
+                    <img id="authAvatar" class="auth-avatar" src="" alt="" style="display:none">
+                    <span id="authUser" class="auth-user"></span>
+                    <button id="authBtn" class="auth-btn" onclick="window.FB && window.FB.toggle()">Iniciar sesión</button>
+                </div>
+            </div>
         </header>
 
         <div class="tabs">
@@ -716,6 +729,11 @@
                     <div class="score-label">Acumulado</div>
                     <div class="score-val" id="intScore">0/0</div>
                 </div>
+                <div class="score-divider"></div>
+                <div class="score-part">
+                    <div id="racha-intervalos"></div>
+                    <div id="hist-intervalos"></div>
+                </div>
             </div>
 
         </div>
@@ -801,6 +819,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script type="module" src="firebase.js"></script>
 </body>
 
 </html>
