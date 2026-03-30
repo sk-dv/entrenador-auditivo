@@ -1,6 +1,6 @@
 import { initializeApp }          from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider,
-         signInWithPopup, signOut,
+         signInWithRedirect, getRedirectResult, signOut,
          onAuthStateChanged }        from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFirestore, doc,
          getDoc, setDoc }            from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
@@ -12,6 +12,9 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 const CLAVE = 'oido_armonico_v1';
+
+// Procesa el resultado del redirect de Google al volver a la página
+getRedirectResult(auth).catch(console.error);
 
 // ─── Helpers Firestore ────────────────────────────────────────────
 async function progresoRef(uid) {
@@ -57,7 +60,7 @@ window.FB = {
     /** Login con Google o cierra sesión si ya está autenticado */
     toggle() {
         if (auth.currentUser) return signOut(auth);
-        return signInWithPopup(auth, new GoogleAuthProvider());
+        return signInWithRedirect(auth, new GoogleAuthProvider());
     },
     /** Sube los datos de progreso a Firestore (fire-and-forget) */
     push(data) {
