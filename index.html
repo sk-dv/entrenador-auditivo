@@ -12,16 +12,21 @@
     <div class="wrap">
 
         <header>
-            <div class="eyebrow">Entrenamiento auditivo</div>
-            <h1>Oído Armónico</h1>
-            <div class="sub">acordes · inversiones · grados · dictado</div>
+            <div class="header-brand">
+                <div class="eyebrow">Entrenamiento auditivo</div>
+                <h1>Oído Armónico</h1>
+            </div>
             <div class="header-controls">
-                <div class="vol-control">
-                    <span class="vol-label">vol</span>
-                    <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8"
-                           oninput="setMasterVolume(this.value)">
-                    <span class="vol-value" id="volValue">80%</span>
+                <div class="vol-popover" id="volPopover">
+                    <button class="header-icon-btn" onclick="document.getElementById('volPopover').classList.toggle('open')" title="Volumen">♪</button>
+                    <div class="vol-popup" id="volPopup">
+                        <span class="vol-label">vol</span>
+                        <input type="range" id="volSlider" min="0" max="1" step="0.01" value="0.8"
+                               oninput="setMasterVolume(this.value)">
+                        <span class="vol-value" id="volValue">80%</span>
+                    </div>
                 </div>
+                <button class="header-icon-btn" onclick="document.getElementById('volPopover').classList.remove('open'); openAnalysis()" title="Análisis de progreso">📊</button>
                 <div class="auth-control">
                     <img id="authAvatar" class="auth-avatar" src="" alt="" style="display:none">
                     <span id="authUser" class="auth-user"></span>
@@ -31,12 +36,30 @@
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('aprender')">① Aprender</button>
-            <button class="tab-btn" onclick="switchTab('explorar')">② Explorar</button>
-            <button class="tab-btn" onclick="switchTab('practicar')">③ Inversiones</button>
-            <button class="tab-btn" onclick="switchTab('grados')">④ Grados</button>
-            <button class="tab-btn" onclick="switchTab('dictado')">⑤ Dictado</button>
-            <button class="tab-btn" onclick="switchTab('intervalos')">⑥ Intervalos</button>
+            <button class="tab-btn active" onclick="switchTab('aprender')">
+                <span class="tab-icon">♩</span>
+                <span class="tab-label">Aprender</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('explorar')">
+                <span class="tab-icon">♬</span>
+                <span class="tab-label">Explorar</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('practicar')">
+                <span class="tab-icon">♯</span>
+                <span class="tab-label">Acordes</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('grados')">
+                <span class="tab-icon">♭</span>
+                <span class="tab-label">Grados</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('dictado')">
+                <span class="tab-icon">♫</span>
+                <span class="tab-label">Dictado</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('intervalos')">
+                <span class="tab-icon">♮</span>
+                <span class="tab-label">Intervalos</span>
+            </button>
         </div>
 
         <!-- ══════════════════════════════════════════
@@ -778,8 +801,6 @@
         </div>
     </div>
 
-    <!-- FAB de análisis -->
-    <button class="analysis-fab" onclick="openAnalysis()" title="Ver análisis de progreso">📊</button>
 
     <!-- Modal de análisis -->
     <div class="analysis-modal-bg" id="analysisModalBg" onclick="closeAnalysis()">
@@ -821,6 +842,12 @@
     <script src="app.js"></script>
     <script src="firebase-config.js"></script>
     <script type="module" src="firebase.js"></script>
+    <script>
+        document.addEventListener('click', e => {
+            const pop = document.getElementById('volPopover');
+            if (pop && !pop.contains(e.target)) pop.classList.remove('open');
+        });
+    </script>
 </body>
 
 </html>
