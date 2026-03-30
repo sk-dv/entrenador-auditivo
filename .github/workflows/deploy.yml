@@ -22,6 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Copiar sitio a _site
+        run: |
+          mkdir _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' . _site/
+
       - name: Crear firebase-config.js desde secrets
         run: |
           {
@@ -34,12 +39,7 @@ jobs:
             echo '    appId:             "${{ secrets.FIREBASE_APP_ID }}",'
             echo '    measurementId:     "${{ secrets.FIREBASE_MEASUREMENT_ID }}"'
             echo '};'
-          } > firebase-config.js
-
-      - name: Copiar sitio a _site
-        run: |
-          mkdir _site
-          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' . _site/
+          } > _site/firebase-config.js
 
       - uses: actions/configure-pages@v5
 
