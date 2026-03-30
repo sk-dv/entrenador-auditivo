@@ -5,15 +5,7 @@ import { getAuth, GoogleAuthProvider,
 import { getFirestore, doc,
          getDoc, setDoc }            from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey:            "AIzaSyDNt9JbKlMoAwCJkWjJ_osVJoIOIFrWf80",
-    authDomain:        "entrenador-auditivo.firebaseapp.com",
-    projectId:         "entrenador-auditivo",
-    storageBucket:     "entrenador-auditivo.firebasestorage.app",
-    messagingSenderId: "458730331723",
-    appId:             "1:458730331723:web:a01471e37094a3cc7b37ce",
-    measurementId:     "G-NM8E9K039D"
-};
+const firebaseConfig = window.FIREBASE_CONFIG;
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
