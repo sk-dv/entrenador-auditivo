@@ -35,6 +35,7 @@ jobs:
               measurementId:     "${{ secrets.FIREBASE_MEASUREMENT_ID }}"
           };
           EOF
+          sed -i '/firebase-config.js/d' .gitignore
 
       - uses: actions/configure-pages@v5
 
