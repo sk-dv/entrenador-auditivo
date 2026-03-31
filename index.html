@@ -461,14 +461,18 @@
         <div class="tab-panel" id="tab-grados">
 
             <div class="tab-intro">
-                <div class="tab-intro-title">Grados tonales y progresiones</div>
-                <div class="tab-intro-desc">Elegí el modo abajo. En <strong>Grados solos</strong>: escuchás el contexto (Do Mayor) seguido de un acorde misterio — identificá a cuál de los 6 grados pertenece. En <strong>Progresiones</strong>: escuchás una secuencia completa y la identificás acorde a acorde.</div>
+                <div class="tab-intro-title">Grados, cadencias y armonía funcional</div>
+                <div class="tab-intro-desc">Seis modos de entrenamiento. <strong>Grados</strong>: identificá el grado tonal por su sonido. <strong>Funciones</strong>: ¿es tónica, subdominante o dominante? <strong>Cadencias</strong>: reconocé el tipo de cierre. <strong>Tonal/Modal</strong>: ¿el movimiento resuelve o flota? <strong>Progresiones</strong>: identificá acorde a acorde. <strong>Completar</strong>: ¿qué acorde sigue?</div>
             </div>
 
             <!-- Sub-mode selector -->
             <div class="grados-mode-selector">
-                <button class="gm-btn gm-active" id="gmGrados" onclick="switchGradosMode('grados')">Grados solos</button>
-                <button class="gm-btn" id="gmProg" onclick="switchGradosMode('progresiones')">Progresiones</button>
+                <button class="gm-btn gm-active" id="gmGrados" onclick="switchGradosMode('grados')">Grados</button>
+                <button class="gm-btn" id="gmFunc"   onclick="switchGradosMode('funciones')">Funciones</button>
+                <button class="gm-btn" id="gmCad"    onclick="switchGradosMode('cadencias')">Cadencias</button>
+                <button class="gm-btn" id="gmModal"  onclick="switchGradosMode('modalidad')">Tonal / Modal</button>
+                <button class="gm-btn" id="gmProg"   onclick="switchGradosMode('progresiones')">Progresiones</button>
+                <button class="gm-btn" id="gmComp"   onclick="switchGradosMode('completar')">Completar</button>
             </div>
 
             <!-- ── GRADOS SECTION ── -->
@@ -611,6 +615,263 @@
                 </div>
 
             </div><!-- end #progresionesSection -->
+
+            <!-- ── FUNCIONES SECTION ── -->
+            <div id="funcionesSection" style="display:none">
+
+                <div class="adap-panel" id="funcionProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por grado (función)</span>
+                    <div id="funcProgBars"></div>
+                    <div class="adap-focus" id="funcFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="funcPlayBtn" onclick="startFuncionRound()">▶</button>
+                        <div class="play-hint" id="funcPlayHint">toca para escuchar un acorde</div>
+                        <div class="deg-context-hint">
+                            escucharás: <strong>Do Mayor</strong> (contexto) → <strong>acorde misterio</strong>
+                        </div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="funcRepeatBtn" onclick="repeatFuncion()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="func-ref-row">
+                        <span class="func-ref-chip func-chip-tonica">Tónica: I · III · VI</span>
+                        <span class="func-ref-chip func-chip-subdominante">Subdominante: II · IV</span>
+                        <span class="func-ref-chip func-chip-dominante">Dominante: V</span>
+                    </div>
+
+                    <div class="func-btn-grid">
+                        <button class="func-btn" data-func="tonica" onclick="answerFuncion('tonica')">
+                            <span class="func-btn-name">Tónica</span>
+                            <span class="func-btn-hint">reposo · hogar · llegada</span>
+                            <span class="func-btn-degs">I · III · VI</span>
+                        </button>
+                        <button class="func-btn" data-func="subdominante" onclick="answerFuncion('subdominante')">
+                            <span class="func-btn-name">Subdominante</span>
+                            <span class="func-btn-hint">alejamiento · preparación</span>
+                            <span class="func-btn-degs">II · IV</span>
+                        </button>
+                        <button class="func-btn" data-func="dominante" onclick="answerFuncion('dominante')">
+                            <span class="func-btn-name">Dominante</span>
+                            <span class="func-btn-hint">tensión · resolución</span>
+                            <span class="func-btn-degs">V</span>
+                        </button>
+                    </div>
+                    <div class="feedback-tip" id="funcFeedback"></div>
+
+                    <div class="reveal-panel" id="funcRevealPanel">
+                        <div class="rev-name" id="funcRevDeg">—</div>
+                        <span class="func-rev-label" id="funcRevFuncion">—</span>
+                        <div class="deg-rev-desc" id="funcRevDesc">—</div>
+                        <button class="next-btn" onclick="startFuncionRound()">→ siguiente</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="funcRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="funcScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-funciones"></div>
+                <div class="racha-bar" id="racha-funciones"></div>
+
+            </div><!-- end #funcionesSection -->
+
+            <!-- ── CADENCIAS SECTION ── -->
+            <div id="cadenciasSection" style="display:none">
+
+                <div class="adap-panel" id="cadenciaProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por tipo de cadencia</span>
+                    <div id="cadProgBars"></div>
+                    <div class="adap-focus" id="cadFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="cadPlayBtn" onclick="startCadenciaRound()">▶</button>
+                        <div class="play-hint" id="cadPlayHint">toca para escuchar una cadencia</div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="cadRepeatBtn" onclick="repeatCadencia()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="cad-btn-grid">
+                        <button class="cad-btn" data-cad="aut_perf" onclick="answerCadencia('aut_perf')">
+                            <span class="cad-btn-name">Auténtica Perfecta</span>
+                            <span class="cad-btn-chords">V → I</span>
+                        </button>
+                        <button class="cad-btn" data-cad="aut_imp" onclick="answerCadencia('aut_imp')">
+                            <span class="cad-btn-name">Auténtica Imperfecta</span>
+                            <span class="cad-btn-chords">V → I⁶</span>
+                        </button>
+                        <button class="cad-btn" data-cad="plagal" onclick="answerCadencia('plagal')">
+                            <span class="cad-btn-name">Plagal</span>
+                            <span class="cad-btn-chords">IV → I</span>
+                        </button>
+                        <button class="cad-btn" data-cad="rota" onclick="answerCadencia('rota')">
+                            <span class="cad-btn-name">Rota / Evitada</span>
+                            <span class="cad-btn-chords">V → VI</span>
+                        </button>
+                        <button class="cad-btn" data-cad="semi" onclick="answerCadencia('semi')">
+                            <span class="cad-btn-name">Semicadencia</span>
+                            <span class="cad-btn-chords">X → V</span>
+                        </button>
+                    </div>
+                    <div class="feedback-tip" id="cadFeedback"></div>
+
+                    <div class="reveal-panel" id="cadRevealPanel">
+                        <div class="rev-name" id="cadRevTitle">—</div>
+                        <div class="prog-rev-chords" id="cadRevChords">—</div>
+                        <div class="rev-sub" id="cadRevFeeling">—</div>
+                        <div class="deg-rev-desc" id="cadRevDesc">—</div>
+                        <div class="prog-rev-songs" id="cadRevSongs"></div>
+                        <button class="next-btn" onclick="startCadenciaRound()">→ siguiente cadencia</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="cadRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="cadScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-cadencias"></div>
+                <div class="racha-bar" id="racha-cadencias"></div>
+
+            </div><!-- end #cadenciasSection -->
+
+            <!-- ── MODALIDAD SECTION ── -->
+            <div id="modalidadSection" style="display:none">
+
+                <div class="adap-panel" id="modalProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tonal vs. Modal — progreso general</span>
+                    <div id="modalProgBars"></div>
+                    <div class="adap-focus" id="modalFocusHint">Presioná ▶ para empezar.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="modalPlayBtn" onclick="startModalRound()">▶</button>
+                        <div class="play-hint" id="modalPlayHint">toca para escuchar una progresión</div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="modalRepeatBtn" onclick="repeatModal()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="modal-btn-grid">
+                        <button class="modal-btn" data-modal="tonal" onclick="answerModal('tonal')">
+                            <span class="modal-btn-name">Tonal</span>
+                            <span class="modal-btn-hint">tensión → resolución obligada · sensible presente</span>
+                        </button>
+                        <button class="modal-btn" data-modal="modal" onclick="answerModal('modal')">
+                            <span class="modal-btn-name">Modal</span>
+                            <span class="modal-btn-hint">movimiento libre · sin polo de atracción</span>
+                        </button>
+                    </div>
+                    <div class="feedback-tip" id="modalFeedback"></div>
+
+                    <div class="reveal-panel" id="modalRevealPanel">
+                        <div class="rev-name" id="modalRevTitle">—</div>
+                        <div class="prog-rev-chords" id="modalRevChords">—</div>
+                        <div class="deg-rev-desc" id="modalRevDesc">—</div>
+                        <div class="deg-rev-prog" id="modalRevWhy">—</div>
+                        <button class="next-btn" onclick="startModalRound()">→ siguiente</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="modalRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="modalScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-modalidad"></div>
+                <div class="racha-bar" id="racha-modalidad"></div>
+
+            </div><!-- end #modalidadSection -->
+
+            <!-- ── COMPLETAR SECTION ── -->
+            <div id="completarSection" style="display:none">
+
+                <div class="adap-panel" id="completarProgressPanel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso — completar progresiones</span>
+                    <div id="compProgBars"></div>
+                    <div class="adap-focus" id="compFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="compPlayBtn" onclick="startCompletarRound()">▶</button>
+                        <div class="play-hint" id="compPlayHint">toca para escuchar la progresión incompleta</div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="compRepeatBtn" onclick="repeatCompletar()" disabled>↺ sin último acorde</button>
+                    </div>
+
+                    <div class="prog-slots-area">
+                        <div class="prog-slots-hint">escuchaste los acordes marcados — ¿qué acorde completa la secuencia?</div>
+                        <div class="prog-slots" id="compSlots"></div>
+                    </div>
+
+                    <div class="deg-btn-grid" id="compBtnGrid"></div>
+                    <div class="feedback-tip" id="compFeedback"></div>
+
+                    <div class="reveal-panel" id="compRevealPanel">
+                        <div class="rev-name" id="compRevTitle">—</div>
+                        <div class="prog-rev-chords" id="compRevChords">—</div>
+                        <div class="rev-sub" id="compRevFeeling">—</div>
+                        <div class="deg-rev-desc" id="compRevDesc">—</div>
+                        <div class="prog-rev-songs" id="compRevSongs"></div>
+                        <button class="next-btn" onclick="startCompletarRound()">→ siguiente progresión</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="compRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="compScore">0/0</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-completar"></div>
+                <div class="racha-bar" id="racha-completar"></div>
+
+            </div><!-- end #completarSection -->
 
         </div>
 

@@ -5,7 +5,7 @@ function switchTab(name) {
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
     if (name === 'practicar') { updateInvProgress(); updatePosProgress(); }
-    if (name === 'grados')    { updateGradosProgress(); updateProgProgress(); }
+    if (name === 'grados')    { updateGradosProgress(); updateProgProgress(); updateFuncionProgress(); updateCadenciaProgress(); updateModalProgress(); updateCompletarProgress(); }
     if (name === 'dictado')   { updateDictProgress(); }
 }
 
@@ -473,11 +473,11 @@ function updateScoreUI() {
 }
 
 // ─── GRADOS TONALES (en Do Mayor) ────────────────────────────────
-// Los 5 acordes diatónicos de Do Mayor: I III IV V VI
+// Los 6 acordes diatónicos de Do Mayor: I II III IV V VI
 // Todos en posición fundamental, en registro medio
 const DEGREES = [
     {
-        num: 'I', name: 'Tónica', quality: 'mayor',
+        num: 'I', name: 'Tónica', quality: 'mayor', funcion: 'tonica',
         chordName: 'Do Mayor', notes: ['Do', 'Mi', 'Sol'], midis: [60, 64, 67],
         feeling: '"Llegué. Reposo absoluto."',
         desc: 'La base de todo. El hogar tonal. Cualquier frase musical se siente completa cuando llega aquí.',
@@ -487,7 +487,7 @@ const DEGREES = [
         qualityLabel: 'Mayor'
     },
     {
-        num: 'II', name: 'Supertónica', quality: 'menor',
+        num: 'II', name: 'Supertónica', quality: 'menor', funcion: 'subdominante',
         chordName: 'Re menor', notes: ['Re', 'Fa', 'La'], midis: [62, 65, 69],
         feeling: '"Puente íntimo. Quiero moverme."',
         desc: 'Acorde menor sobre la segunda nota. Tiene una tensión suave que pide resolver hacia el V o el IV. Muy común en cadencias y en la progresión II-V-I del jazz.',
@@ -497,7 +497,7 @@ const DEGREES = [
         qualityLabel: 'menor'
     },
     {
-        num: 'III', name: 'Mediante', quality: 'menor',
+        num: 'III', name: 'Mediante', quality: 'menor', funcion: 'tonica',
         chordName: 'Mi menor', notes: ['Mi', 'Sol', 'Si'], midis: [52, 55, 59],
         feeling: '"Íntimo. Un poco oscuro."',
         desc: 'Acorde menor sobre la tercera nota. Comparte dos notas con el I (Mi, Sol) y dos con el V (Sol, Si). Ambiguo y expresivo.',
@@ -507,7 +507,7 @@ const DEGREES = [
         qualityLabel: 'menor'
     },
     {
-        num: 'IV', name: 'Subdominante', quality: 'mayor',
+        num: 'IV', name: 'Subdominante', quality: 'mayor', funcion: 'subdominante',
         chordName: 'Fa Mayor', notes: ['Fa', 'La', 'Do'], midis: [53, 57, 60],
         feeling: '"Me alejo del centro."',
         desc: 'Cálido y amplio. Tensión de salida — lleva al V con urgencia o regresa al I con calidez (cadencia plagal "amén").',
@@ -517,7 +517,7 @@ const DEGREES = [
         qualityLabel: 'Mayor'
     },
     {
-        num: 'V', name: 'Dominante', quality: 'mayor',
+        num: 'V', name: 'Dominante', quality: 'mayor', funcion: 'dominante',
         chordName: 'Sol Mayor', notes: ['Sol', 'Si', 'Re'], midis: [55, 59, 62],
         feeling: '"Tengo que resolver. Ahora."',
         desc: 'La tensión más fuerte de la tonalidad. El Si (sensible) pide subir al Do. Motor de toda la armonía tonal.',
@@ -527,7 +527,7 @@ const DEGREES = [
         qualityLabel: 'Mayor'
     },
     {
-        num: 'VI', name: 'Superdominante', quality: 'menor',
+        num: 'VI', name: 'Superdominante', quality: 'menor', funcion: 'tonica',
         chordName: 'La menor', notes: ['La', 'Do', 'Mi'], midis: [57, 60, 64],
         feeling: '"Nostalgia. El lado oscuro."',
         desc: 'El relativo menor de Do. Oscuro pero estable. Base de la progresión I-V-VI-IV (pop, rock, bolero).',
@@ -755,6 +755,108 @@ const PROGRESSIONS = [
       color:'#9b8ec4', weight:3 },
 ];
 
+// ─── CADENCIAS ────────────────────────────────────────────────────
+// midisSeq: array de arrays MIDI — permite inversiones sin tocar DEGREES
+const CADENCE_TYPES = [
+    { id: 'aut_perf', name: 'Auténtica Perfecta', short: 'V → I',
+      chords: ['V','I'],
+      midisSeq: [[55,59,62],[60,64,67]],   // V fund → I fund
+      feeling: 'Cierre total · resolución absoluta',
+      desc: 'El V (Sol) en estado fundamental resuelve al I (Do) también en fundamental. El Si (sensible) asciende al Do. El cierre más sólido de la armonía tonal.',
+      songs: ['"Himno Nacional" — cierre de cada frase', '"Las Mañanitas" — nota final'],
+      weight: 4 },
+    { id: 'aut_imp', name: 'Auténtica Imperfecta', short: 'V → I⁶',
+      chords: ['V','I⁶'],
+      midisSeq: [[55,59,62],[64,67,72]],   // V fund → I en 1ª inversión (Mi en el bajo)
+      feeling: 'Resolución abierta · punto y seguido',
+      desc: 'El V resuelve al I, pero el I está en primera inversión (Mi en el bajo). Hay resolución, pero la frase queda abierta — como un punto y seguido, no un punto final.',
+      songs: ['"Cielito Lindo" — cierre interno de frase'],
+      weight: 3 },
+    { id: 'plagal', name: 'Plagal', short: 'IV → I',
+      chords: ['IV','I'],
+      midisSeq: [[53,57,60],[60,64,67]],
+      feeling: 'Cálida · suave · "amén"',
+      desc: 'El IV (Fa) cede al I (Do) sin pasar por el V. Más suave que la auténtica. El reposo litúrgico — el "amén" al final del himno.',
+      songs: ['"Amén" en himnos religiosos', '"La Bamba" — reposo final'],
+      weight: 3 },
+    { id: 'rota', name: 'Rota / Evitada', short: 'V → VI',
+      chords: ['V','VI'],
+      midisSeq: [[55,59,62],[57,60,64]],
+      feeling: 'Sorpresa · engaño · continúa',
+      desc: 'Esperabas el I pero llegó el VI menor. El dominante elude la resolución — la música decide seguir narrando. También llamada "cadencia de engaño".',
+      songs: ['"Bésame Mucho" — el giro dramático del verso'],
+      weight: 3 },
+    { id: 'semi', name: 'Semicadencia', short: 'X → V',
+      chords: ['I','V'],
+      midisSeq: [[60,64,67],[55,59,62]],
+      feeling: 'Suspendida · pregunta sin respuesta',
+      desc: 'Termina en el V — queda flotando. La mitad de una cadencia: la pregunta que espera su respuesta. Típica al final de la primera frase de una pieza.',
+      songs: ['"Las Mañanitas" — la primera frase termina aquí', '"Cielito Lindo" — primer corte'],
+      weight: 3 },
+];
+
+// ─── PROGRESIONES MODALES VS TONALES ──────────────────────────────
+const MODAL_PROGS = [
+    // TONAL — tensión-resolución clara, sensible o función de dominante
+    { id: 'ton_v_i',  isModal: false,
+      chords: ['V','I'],   midisSeq: [[55,59,62],[60,64,67]],
+      answer: 'tonal',
+      desc: 'Sol Mayor → Do Mayor: el Si (sensible) "tira" hacia el Do. Resolución obligada.',
+      why: 'La sensible (Si→Do) y la quinta del V crean la gravedad tonal clásica.' },
+    { id: 'ton_iv_i', isModal: false,
+      chords: ['IV','I'],  midisSeq: [[53,57,60],[60,64,67]],
+      answer: 'tonal',
+      desc: 'Fa Mayor → Do Mayor: el IV cede al I. Cadencia plagal — el "amén" del sistema tonal.',
+      why: 'El Fa del IV resuelve hacia el Mi del I por semitono descendente.' },
+    { id: 'ton_ii_v', isModal: false,
+      chords: ['II','V'],  midisSeq: [[62,65,69],[55,59,62]],
+      answer: 'tonal',
+      desc: 'Re menor → Sol Mayor: pre-dominante al dominante. La jerarquía tonal en acción.',
+      why: 'El Re m "empuja" hacia el Sol M. Movimiento con función y dirección obligada.' },
+    { id: 'ton_iv_v', isModal: false,
+      chords: ['IV','V'],  midisSeq: [[53,57,60],[55,59,62]],
+      answer: 'tonal',
+      desc: 'Fa Mayor → Sol Mayor: subdominante al dominante. Tensión creciente que pide resolución al I.',
+      why: 'La dirección IV→V→(I) es de las más fuertes de la armonía tonal.' },
+    // MODAL — movimiento libre, sin polo de atracción ni sensible
+    { id: 'mod_ii_vi', isModal: true,
+      chords: ['II','VI'], midisSeq: [[62,65,69],[57,60,64]],
+      answer: 'modal',
+      desc: 'Re menor → La menor: dos acordes menores sin urgencia entre sí. El movimiento es libre.',
+      why: 'Sin sensible, sin función de dominante — ninguno "tira" del otro con obligación.' },
+    { id: 'mod_vi_iv', isModal: true,
+      chords: ['VI','IV'], midisSeq: [[57,60,64],[53,57,60]],
+      answer: 'modal',
+      desc: 'La menor → Fa Mayor: cambio de color, no de función. Ninguno demanda resolución.',
+      why: 'La menor no tiene función de dominante sobre Fa Mayor. Solo movimiento de color.' },
+    { id: 'mod_iv_iii', isModal: true,
+      chords: ['IV','III'], midisSeq: [[53,57,60],[52,55,59]],
+      answer: 'modal',
+      desc: 'Fa Mayor → Mi menor: descenso libre. El Mi m no tiene función de dominante.',
+      why: 'El Mi menor nunca actúa como dominante en este contexto. Movimiento modal descendente.' },
+    { id: 'mod_vi_ii', isModal: true,
+      chords: ['VI','II'], midisSeq: [[57,60,64],[62,65,69]],
+      answer: 'modal',
+      desc: 'La menor → Re menor: movimiento entre dos acordes menores. El oído no siente gravedad.',
+      why: 'Ambos menores, sin sensible ni función de dominante entre ellos.' },
+];
+
+// ─── AUDIO — MIDI SEQUENCE ────────────────────────────────────────
+// Toca un array de arrays MIDI (permite acordes en inversión sin depender de DEGREES)
+function playMidiSequence(midisArray, arpInterval) {
+    stopAllNodes();
+    const a = ctx(), now = a.currentTime + 0.05;
+    let offset = 0;
+    midisArray.forEach(chordMidis => {
+        const noteCount = chordMidis.length;
+        const chordSpread = arpInterval ? noteCount * arpInterval : 0;
+        chordMidis.forEach((m, i) =>
+            playNote(m, now + offset + (arpInterval ? i * arpInterval : 0), 1.7, 0.07)
+        );
+        offset += (arpInterval ? chordSpread + 0.5 : 0) + 2.1;
+    });
+}
+
 function weightedRand(arr) {
     const total = arr.reduce((sum, x) => sum + x.weight, 0);
     let r = Math.random() * total;
@@ -777,12 +879,18 @@ function toggleProgRef() {
 }
 
 function switchGradosMode(mode) {
-    document.getElementById('gradosSection').style.display = mode === 'grados' ? '' : 'none';
-    document.getElementById('progresionesSection').style.display = mode === 'progresiones' ? '' : 'none';
-    document.getElementById('gmGrados').classList.toggle('gm-active', mode === 'grados');
-    document.getElementById('gmProg').classList.toggle('gm-active', mode === 'progresiones');
-    if (mode === 'grados') updateGradosProgress();
+    const sections = ['grados','progresiones','funciones','cadencias','modalidad','completar'];
+    const btnIds   = ['gmGrados','gmProg','gmFunc','gmCad','gmModal','gmComp'];
+    sections.forEach((s, i) => {
+        document.getElementById(s + 'Section').style.display = mode === s ? '' : 'none';
+        document.getElementById(btnIds[i]).classList.toggle('gm-active', mode === s);
+    });
+    if (mode === 'grados')       updateGradosProgress();
     if (mode === 'progresiones') updateProgProgress();
+    if (mode === 'funciones')    updateFuncionProgress();
+    if (mode === 'cadencias')    updateCadenciaProgress();
+    if (mode === 'modalidad')    updateModalProgress();
+    if (mode === 'completar')    updateCompletarProgress();
 }
 
 function buildProgRef() {
@@ -1072,6 +1180,334 @@ function showProgReveal() {
     updateProgProgress(); renderHistorial('progresiones');
 }
 
+// ─── FUNCIONES (Tónica / Subdominante / Dominante) ───────────────
+const FUNC_NAMES = { tonica: 'Tónica', subdominante: 'Subdominante', dominante: 'Dominante' };
+
+let currentFuncionDeg = null, funcionRound = 0;
+let funcionScores = [0, 0];
+let funcionPhase = 'idle';
+let funcionRepeatCount = 0;
+
+function startFuncionRound() {
+    hideFeedbackTip('funcFeedback');
+    currentFuncionDeg = pickAdaptiveDegree();
+    funcionRound++; funcionPhase = 'answering';
+    funcionRepeatCount = 0;
+    document.getElementById('funcPlayHint').textContent = 'escuchando…';
+    document.getElementById('funcRepeatBtn').disabled = false;
+    document.getElementById('funcRevealPanel').classList.remove('visible');
+    document.querySelectorAll('.func-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('funcRound').textContent = '#' + funcionRound;
+    const btn = document.getElementById('funcPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+    const delay = playMode === 'arp' ? ARP_DELAYS[0] : 0;
+    playDegreeContext(currentFuncionDeg, delay);
+    setTimeout(() => {
+        if (funcionPhase === 'answering')
+            document.getElementById('funcPlayHint').textContent = '¿qué función cumple este acorde?';
+    }, 1800);
+}
+
+function repeatFuncion() {
+    if (!currentFuncionDeg) return;
+    funcionRepeatCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[funcionRepeatCount % ARP_DELAYS.length] : 0;
+    playDegreeContext(currentFuncionDeg, delay);
+    if (playMode === 'arp') {
+        const looped = (funcionRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[funcionRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('funcPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerFuncion(funcion) {
+    if (funcionPhase !== 'answering') return;
+    funcionPhase = 'done';
+    const correct = funcion === currentFuncionDeg.funcion;
+    funcionScores[1]++;
+    if (correct) funcionScores[0]++;
+    registrarDetalle('funciones', currentFuncionDeg.num, correct);
+
+    document.querySelectorAll('.func-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.func === currentFuncionDeg.funcion && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`.func-btn[data-func="${funcion}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    if (!correct) {
+        showFeedbackTip('funcFeedback',
+            `Era ${FUNC_NAMES[currentFuncionDeg.funcion]} — ${currentFuncionDeg.num} (${currentFuncionDeg.chordName}) tiene función de ${FUNC_NAMES[currentFuncionDeg.funcion].toLowerCase()}`);
+    }
+    const d = currentFuncionDeg;
+    document.getElementById('funcRevDeg').textContent = `${d.num} — ${d.chordName}`;
+    document.getElementById('funcRevFuncion').textContent = FUNC_NAMES[d.funcion];
+    document.getElementById('funcRevFuncion').className = 'func-rev-label func-rev-' + d.funcion;
+    document.getElementById('funcRevDesc').textContent = d.desc;
+    document.getElementById('funcRevealPanel').classList.add('visible');
+    document.getElementById('funcScore').textContent = `${funcionScores[0]}/${funcionScores[1]}`;
+    guardarRonda('funciones', funcionScores[0], funcionScores[1]);
+    updateFuncionProgress(); renderHistorial('funciones');
+}
+
+// ─── CADENCIAS ────────────────────────────────────────────────────
+let currentCadencia = null, cadenciaRound = 0;
+let cadenciaScores = [0, 0];
+let cadenciaPhase = 'idle';
+let cadenciaRepeatCount = 0;
+
+function startCadenciaRound() {
+    hideFeedbackTip('cadFeedback');
+    currentCadencia = weightedPick(adaptiveWeights(CADENCE_TYPES, 'cadencias', c => c.id));
+    cadenciaRound++; cadenciaPhase = 'answering';
+    cadenciaRepeatCount = 0;
+    document.getElementById('cadPlayHint').textContent = 'escuchando…';
+    document.getElementById('cadRepeatBtn').disabled = false;
+    document.getElementById('cadRevealPanel').classList.remove('visible');
+    document.querySelectorAll('.cad-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('cadRound').textContent = '#' + cadenciaRound;
+    const btn = document.getElementById('cadPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+    const delay = playMode === 'arp' ? ARP_DELAYS[0] : 0;
+    playMidiSequence(currentCadencia.midisSeq, delay);
+    setTimeout(() => {
+        if (cadenciaPhase === 'answering')
+            document.getElementById('cadPlayHint').textContent = '¿qué tipo de cadencia es?';
+    }, currentCadencia.midisSeq.length * 2200 + 300);
+}
+
+function repeatCadencia() {
+    if (!currentCadencia) return;
+    cadenciaRepeatCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[cadenciaRepeatCount % ARP_DELAYS.length] : 0;
+    playMidiSequence(currentCadencia.midisSeq, delay);
+    if (playMode === 'arp') {
+        const looped = (cadenciaRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[cadenciaRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('cadPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerCadencia(typeId) {
+    if (cadenciaPhase !== 'answering') return;
+    cadenciaPhase = 'done';
+    const correct = typeId === currentCadencia.id;
+    cadenciaScores[1]++;
+    if (correct) cadenciaScores[0]++;
+    registrarDetalle('cadencias', currentCadencia.id, correct);
+
+    document.querySelectorAll('.cad-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.cad === currentCadencia.id && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`.cad-btn[data-cad="${typeId}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    if (!correct) {
+        const wrongCad = CADENCE_TYPES.find(c => c.id === typeId);
+        showFeedbackTip('cadFeedback',
+            `Era ${currentCadencia.name} (${currentCadencia.chords.join(' → ')})` +
+            (wrongCad ? ` — no ${wrongCad.name}` : ''));
+    }
+    const c = currentCadencia;
+    document.getElementById('cadRevTitle').textContent = c.name;
+    document.getElementById('cadRevChords').textContent = c.chords.join(' → ');
+    document.getElementById('cadRevFeeling').textContent = c.feeling;
+    document.getElementById('cadRevDesc').textContent = c.desc;
+    document.getElementById('cadRevSongs').innerHTML = c.songs.map(s => `<span class="prog-song-pill">${s}</span>`).join('');
+    document.getElementById('cadRevealPanel').classList.add('visible');
+    document.getElementById('cadScore').textContent = `${cadenciaScores[0]}/${cadenciaScores[1]}`;
+    guardarRonda('cadencias', cadenciaScores[0], cadenciaScores[1]);
+    updateCadenciaProgress(); renderHistorial('cadencias');
+}
+
+// ─── MODAL vs TONAL ───────────────────────────────────────────────
+let currentModal = null, modalRound = 0;
+let modalScores = [0, 0];
+let modalPhase = 'idle';
+let modalRepeatCount = 0;
+
+function startModalRound() {
+    hideFeedbackTip('modalFeedback');
+    currentModal = weightedPick(adaptiveWeights(MODAL_PROGS, 'modalidad', m => m.id));
+    modalRound++; modalPhase = 'answering';
+    modalRepeatCount = 0;
+    document.getElementById('modalPlayHint').textContent = 'escuchando…';
+    document.getElementById('modalRepeatBtn').disabled = false;
+    document.getElementById('modalRevealPanel').classList.remove('visible');
+    document.querySelectorAll('.modal-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('modalRound').textContent = '#' + modalRound;
+    const btn = document.getElementById('modalPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+    const delay = playMode === 'arp' ? ARP_DELAYS[0] : 0;
+    playMidiSequence(currentModal.midisSeq, delay);
+    setTimeout(() => {
+        if (modalPhase === 'answering')
+            document.getElementById('modalPlayHint').textContent = '¿sientes resolución obligada (tonal) o movimiento libre (modal)?';
+    }, currentModal.midisSeq.length * 2200 + 300);
+}
+
+function repeatModal() {
+    if (!currentModal) return;
+    modalRepeatCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[modalRepeatCount % ARP_DELAYS.length] : 0;
+    playMidiSequence(currentModal.midisSeq, delay);
+    if (playMode === 'arp') {
+        const looped = (modalRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[modalRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('modalPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerModal(answer) {
+    if (modalPhase !== 'answering') return;
+    modalPhase = 'done';
+    const correct = answer === currentModal.answer;
+    modalScores[1]++;
+    if (correct) modalScores[0]++;
+    registrarDetalle('modalidad', currentModal.id, correct);
+
+    document.querySelectorAll('.modal-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.modal === currentModal.answer && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`.modal-btn[data-modal="${answer}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    if (!correct) {
+        showFeedbackTip('modalFeedback',
+            `Era ${currentModal.answer === 'tonal' ? 'Tonal' : 'Modal'} — ${currentModal.desc}`);
+    }
+    const m = currentModal;
+    document.getElementById('modalRevTitle').textContent = m.answer === 'tonal' ? 'Sistema Tonal' : 'Sistema Modal';
+    document.getElementById('modalRevChords').textContent = m.chords.join(' → ');
+    document.getElementById('modalRevDesc').textContent = m.desc;
+    document.getElementById('modalRevWhy').textContent = m.why;
+    document.getElementById('modalRevealPanel').classList.add('visible');
+    document.getElementById('modalScore').textContent = `${modalScores[0]}/${modalScores[1]}`;
+    guardarRonda('modalidad', modalScores[0], modalScores[1]);
+    updateModalProgress(); renderHistorial('modalidad');
+}
+
+// ─── COMPLETAR PROGRESIÓN ─────────────────────────────────────────
+function getCompletarPool() {
+    return PROGRESSIONS.filter(p => p.chords.length >= 3);
+}
+
+let currentCompletar = null, completarRound = 0;
+let completarScores = [0, 0];
+let completarPhase = 'idle';
+let completarRepeatCount = 0;
+
+function buildCompBtns() {
+    const el = document.getElementById('compBtnGrid');
+    if (!el) return;
+    el.innerHTML = DEGREES.map(d =>
+        `<button class="deg-btn" data-deg="${d.num}" style="--deg-color:${d.color}" onclick="answerCompletar('${d.num}')">
+    <span class="deg-btn-num">${d.num}</span>
+    <span class="deg-btn-chord">${d.chordName}</span>
+    <span class="deg-btn-quality ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</span>
+</button>`
+    ).join('');
+}
+
+function startCompletarRound() {
+    hideFeedbackTip('compFeedback');
+    const pool = getCompletarPool();
+    currentCompletar = weightedPick(adaptiveWeights(pool, 'completar', p => p.id));
+    completarRound++; completarPhase = 'answering';
+    completarRepeatCount = 0;
+
+    const prefix = currentCompletar.chords.slice(0, -1);
+    document.getElementById('compPlayHint').textContent = 'escuchando…';
+    document.getElementById('compRepeatBtn').disabled = false;
+    document.getElementById('compRevealPanel').classList.remove('visible');
+    document.querySelectorAll('#compBtnGrid .deg-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('compRound').textContent = '#' + completarRound;
+
+    // Mostrar slots: los conocidos con su numeral, el misterio con "?"
+    document.getElementById('compSlots').innerHTML = currentCompletar.chords.map((ch, i) => {
+        const isLast = i === currentCompletar.chords.length - 1;
+        return `<div class="prog-slot ${isLast ? 'ps-active comp-mystery' : 'comp-known'}" id="cps${i}">${isLast ? '?' : ch}</div>`;
+    }).join('');
+
+    const btn = document.getElementById('compPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+
+    // Tocar solo el prefijo (sin el último acorde)
+    playProgression(prefix, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+
+    setTimeout(() => {
+        if (completarPhase === 'answering')
+            document.getElementById('compPlayHint').textContent = '¿qué acorde completa la secuencia?';
+    }, prefix.length * 2200 + 300);
+}
+
+function repeatCompletar() {
+    if (!currentCompletar) return;
+    completarRepeatCount++;
+    const prefix = currentCompletar.chords.slice(0, -1);
+    const delay = playMode === 'arp' ? ARP_DELAYS[completarRepeatCount % ARP_DELAYS.length] : 0;
+    playProgression(prefix, delay);
+    if (playMode === 'arp') {
+        const looped = (completarRepeatCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[completarRepeatCount % TEMPO_NAMES.length];
+        document.getElementById('compPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerCompletar(num) {
+    if (completarPhase !== 'answering') return;
+    completarPhase = 'done';
+    const mystery = currentCompletar.chords[currentCompletar.chords.length - 1];
+    const correct = num === mystery;
+    completarScores[1]++;
+    if (correct) completarScores[0]++;
+    registrarDetalle('completar', currentCompletar.id, correct);
+
+    document.querySelectorAll('#compBtnGrid .deg-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.deg === mystery && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`#compBtnGrid .deg-btn[data-deg="${num}"]`).classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    const lastSlot = document.getElementById('cps' + (currentCompletar.chords.length - 1));
+    lastSlot.textContent = mystery;
+    lastSlot.classList.remove('ps-active', 'comp-mystery');
+    lastSlot.classList.add(correct ? 'ps-correct' : 'ps-wrong');
+
+    if (!correct) {
+        const expDeg = DEGREES.find(d => d.num === mystery);
+        const ansDeg = DEGREES.find(d => d.num === num);
+        showFeedbackTip('compFeedback',
+            `Era ${mystery} (${expDeg ? expDeg.chordName : ''})` +
+            (ansDeg ? ` — no ${num} (${ansDeg.chordName})` : ''));
+    }
+
+    // Tocar la progresión completa para confirmar
+    setTimeout(() => playProgression(currentCompletar.chords, playMode === 'arp' ? ARP_DELAYS[0] : 0), 500);
+
+    const c = currentCompletar;
+    document.getElementById('compRevTitle').textContent = c.name;
+    document.getElementById('compRevChords').textContent = c.chords.join(' → ');
+    document.getElementById('compRevFeeling').textContent = c.feeling;
+    document.getElementById('compRevDesc').textContent = c.desc;
+    document.getElementById('compRevSongs').innerHTML = c.songs.map(s => `<span class="prog-song-pill">${s}</span>`).join('');
+    document.getElementById('compRevealPanel').classList.add('visible');
+    document.getElementById('compScore').textContent = `${completarScores[0]}/${completarScores[1]}`;
+    guardarRonda('completar', completarScores[0], completarScores[1]);
+    updateCompletarProgress(); renderHistorial('completar');
+}
+
 // ─── PROGRESO ─────────────────────────────────────────────────────
 const CLAVE_PROGRESO = 'oido_armonico_v1';
 
@@ -1153,7 +1589,8 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones','dictado','posicion','intervalos'].forEach(m => {
+    ['inversiones','grados','progresiones','dictado','posicion','intervalos',
+     'funciones','cadencias','modalidad','completar'].forEach(m => {
         renderHistorial(m);
         renderRacha(m);
     });
@@ -1668,6 +2105,81 @@ function updateProgProgress() {
     renderAdapPanel('progresiones', items, labels, tips, 'progProgBars', 'progFocusHint', 2);
 }
 
+function updateFuncionProgress() {
+    const tips = {
+        I:   'Tónica — reposo, hogar. I, III, VI son tónica.',
+        II:  'Subdominante — alejamiento, preparación. II y IV.',
+        III: 'Tónica — comparte notas con I y V. Ambiguo.',
+        IV:  'Subdominante — cálida, se aleja del centro.',
+        V:   'Dominante — máxima tensión. Solo el V.',
+        VI:  'Tónica — el relativo menor, oscuro pero estable.',
+    };
+    renderAdapPanel(
+        'funciones',
+        ['I','II','III','IV','V','VI'],
+        { I:'I — Do M', II:'II — Re m', III:'III — Mi m', IV:'IV — Fa M', V:'V — Sol M', VI:'VI — La m' },
+        tips, 'funcProgBars', 'funcFocusHint'
+    );
+}
+
+function updateCadenciaProgress() {
+    const labels = {
+        aut_perf: 'Aut. Perfecta',
+        aut_imp:  'Aut. Imperfecta',
+        plagal:   'Plagal',
+        rota:     'Rota',
+        semi:     'Semicadencia',
+    };
+    const tips = {
+        aut_perf: 'V→I ambos en fundamental. El cierre más sólido.',
+        aut_imp:  'V→I con I en inversión — resuelve pero deja abierto.',
+        plagal:   'IV→I — el "amén" cálido, sin pasar por V.',
+        rota:     'V→VI — el dominante que engaña al oído.',
+        semi:     'X→V — termina en tensión, pregunta sin respuesta.',
+    };
+    renderAdapPanel(
+        'cadencias',
+        CADENCE_TYPES.map(c => c.id),
+        labels, tips, 'cadProgBars', 'cadFocusHint'
+    );
+}
+
+function updateModalProgress() {
+    const el   = document.getElementById('modalProgBars');
+    const hint = document.getElementById('modalFocusHint');
+    if (!el || !hint) return;
+    const hist = (cargarProgreso()['modalidad'] || []).slice(-10);
+    el.innerHTML = '';
+    if (hist.length === 0) { hint.textContent = 'Presioná ▶ para empezar.'; return; }
+    const avg = Math.round(hist.reduce((s, x) => s + x.pct, 0) / hist.length);
+    hint.innerHTML = avg >= 80
+        ? '<strong>¡Excelente!</strong> Tu oído distingue bien tonal vs. modal.'
+        : avg >= 60
+        ? `Promedio ${avg}% — escuchá la sensible (Si→Do) como señal de sistema tonal.`
+        : `Promedio ${avg}% — tonal = atracción obligada, modal = movimiento libre.`;
+}
+
+function updateCompletarProgress() {
+    const det = (cargarProgreso().detalle || {}).completar || {};
+    const pool = getCompletarPool();
+    const withData = pool
+        .filter(p => (det[p.id] || [0,0])[1] >= 2)
+        .sort((a, b) => {
+            const pa = (det[a.id][0]||0) / det[a.id][1];
+            const pb = (det[b.id][0]||0) / det[b.id][1];
+            return pa - pb;
+        }).slice(0, 6);
+    if (withData.length === 0) {
+        document.getElementById('compProgBars').innerHTML = '';
+        document.getElementById('compFocusHint').textContent = 'Presioná ▶ para empezar.';
+        return;
+    }
+    const items  = withData.map(p => p.id);
+    const labels = Object.fromEntries(withData.map(p => [p.id, p.name]));
+    const tips   = Object.fromEntries(withData.map(p => [p.id, p.chords.join(' → ')]));
+    renderAdapPanel('completar', items, labels, tips, 'compProgBars', 'compFocusHint', 2);
+}
+
 function updateDictProgress() {
     const notes = dictadoSet.notes;
     const noteTips = Object.fromEntries(notes.map(n => [n, `nota ${n} — escuchala como parte del pentacordio`]));
@@ -2139,6 +2651,7 @@ buildDegreeRef();
 buildProgBtns();
 initCustomProgs();   // merge custom progs into PROGRESSIONS antes de buildProgRef
 buildProgRef();
+buildCompBtns();
 initDictado();
 initHistoriales();
 initCseq();
@@ -2148,4 +2661,8 @@ updateInvProgress();
 updatePosProgress();
 updateGradosProgress();
 updateProgProgress();
+updateFuncionProgress();
+updateCadenciaProgress();
+updateModalProgress();
+updateCompletarProgress();
 updateDictProgress();

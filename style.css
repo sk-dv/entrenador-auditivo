@@ -1923,29 +1923,27 @@
     /* ── GRADOS MODE SELECTOR ── */
     .grados-mode-selector {
         display: flex;
-        gap: 0;
-        border: 1.5px solid var(--ink);
-        border-radius: 4px;
-        overflow: hidden;
+        flex-wrap: wrap;
+        gap: 0.4rem;
         margin-bottom: 1.75rem;
     }
 
     .gm-btn {
-        flex: 1;
-        padding: 0.75rem 1rem;
+        flex: 1 0 calc(33.33% - 0.4rem);
+        min-width: 7rem;
+        padding: 0.65rem 0.6rem;
         background: transparent;
-        border: none;
-        border-right: 1px solid var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 0;
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.68rem;
-        letter-spacing: 0.1em;
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--ink-mid);
         cursor: pointer;
+        text-align: center;
         transition: background 0.15s, color 0.15s;
     }
-
-    .gm-btn:last-child { border-right: none; }
 
     .gm-btn.gm-active {
         background: var(--ink);
@@ -1955,6 +1953,174 @@
     .gm-btn:not(.gm-active):hover {
         background: rgba(26,23,20,0.06);
         color: var(--ink);
+    }
+
+    /* ── FUNCIONES ── */
+    .func-ref-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .func-ref-chip {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.58rem;
+        padding: 0.22rem 0.6rem;
+        border: 1px solid currentColor;
+        letter-spacing: 0.04em;
+    }
+
+    .func-chip-tonica      { color: #4caf7d; }
+    .func-chip-subdominante { color: #d4aa3e; }
+    .func-chip-dominante   { color: #e07a3a; }
+
+    .func-btn-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .func-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 1.1rem 0.75rem;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .func-btn:hover { background: rgba(26,23,20,0.06); }
+    .func-btn.selected-correct { background: var(--correct); border-color: var(--correct); color: white; }
+    .func-btn.selected-wrong   { background: var(--wrong);   border-color: var(--wrong);   color: white; }
+    .func-btn.reveal-correct   { background: rgba(76,175,125,0.12); border-color: var(--correct); color: var(--correct); }
+    .func-btn:disabled         { opacity: 0.5; cursor: default; }
+
+    .func-btn-name {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .func-btn-hint {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.55rem;
+        opacity: 0.65;
+        text-align: center;
+    }
+
+    .func-btn-degs {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.6rem;
+        opacity: 0.5;
+    }
+
+    .func-rev-label {
+        display: inline-block;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.2rem 0.7rem;
+        border: 1px solid currentColor;
+        margin-bottom: 0.75rem;
+    }
+
+    .func-rev-tonica      { color: #4caf7d; }
+    .func-rev-subdominante { color: #d4aa3e; }
+    .func-rev-dominante   { color: #e07a3a; }
+
+    /* ── CADENCIAS ── */
+    .cad-btn-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .cad-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.9rem 0.6rem;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .cad-btn:hover { background: rgba(26,23,20,0.06); }
+    .cad-btn.selected-correct { background: var(--correct); border-color: var(--correct); color: white; }
+    .cad-btn.selected-wrong   { background: var(--wrong);   border-color: var(--wrong);   color: white; }
+    .cad-btn.reveal-correct   { background: rgba(76,175,125,0.12); border-color: var(--correct); color: var(--correct); }
+    .cad-btn:disabled         { opacity: 0.5; cursor: default; }
+
+    .cad-btn-name {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .cad-btn-chords {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.62rem;
+        opacity: 0.65;
+    }
+
+    /* ── MODAL / TONAL ── */
+    .modal-btn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .modal-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 1.4rem 1rem;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .modal-btn:hover { background: rgba(26,23,20,0.06); }
+    .modal-btn.selected-correct { background: var(--correct); border-color: var(--correct); color: white; }
+    .modal-btn.selected-wrong   { background: var(--wrong);   border-color: var(--wrong);   color: white; }
+    .modal-btn.reveal-correct   { background: rgba(76,175,125,0.12); border-color: var(--correct); color: var(--correct); }
+    .modal-btn:disabled         { opacity: 0.5; cursor: default; }
+
+    .modal-btn-name {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .modal-btn-hint {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.58rem;
+        opacity: 0.65;
+        text-align: center;
+    }
+
+    /* ── COMPLETAR — slot misterio ── */
+    .comp-mystery {
+        border-style: dashed !important;
+        font-style: italic;
+        opacity: 0.65;
+    }
+
+    .comp-known {
+        opacity: 0.7;
     }
 
     /* ── PROGRESIONES — REFERENCIA ── */
