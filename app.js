@@ -42,6 +42,11 @@ function ctx() {
         masterOut = comp;
     }
     if (ac.state === 'suspended') ac.resume();
+    if (ac.state === 'closed') {
+        // Safari puede cerrar el contexto tras larga inactividad en segundo plano
+        ac = null; masterOut = null; masterGain = null;
+        return ctx();
+    }
     return ac;
 }
 
@@ -2115,6 +2120,17 @@ function initIntervalos() {
     renderHistorial('intervalos');
     renderRacha('intervalos');
 }
+
+// ─── SAFARI AUDIO RECOVERY ───────────────────────────────────────
+// Safari suspende el AudioContext en segundo plano.
+// Al volver al frente lo reanudamos; si lo cerró, lo limpiamos
+// para que ctx() lo recree en el siguiente uso.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ac) {
+        if (ac.state === 'suspended') ac.resume();
+        if (ac.state === 'closed') { ac = null; masterOut = null; masterGain = null; }
+    }
+});
 
 // ─── INIT ─────────────────────────────────────────────────────────
 initVolSlider();
