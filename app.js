@@ -930,6 +930,7 @@ function guardarYMergeCustomProg(name, chords) {
         songs: [], color: '#8b7355'
     });
     localStorage.setItem(CLAVE_CUSTOM_PROGS, JSON.stringify(progs));
+    if (window.FB) window.FB.pushCustom(progs, cargarCustomSeqs());
     mergeCustomProgs();
     buildProgRef();
     renderCustomProgList();
@@ -938,6 +939,7 @@ function guardarYMergeCustomProg(name, chords) {
 function deleteCustomProg(id) {
     const progs = cargarCustomProgs().filter(p => p.id !== id);
     localStorage.setItem(CLAVE_CUSTOM_PROGS, JSON.stringify(progs));
+    if (window.FB) window.FB.pushCustom(progs, cargarCustomSeqs());
     mergeCustomProgs();
     buildProgRef();
     renderCustomProgList();
@@ -2358,6 +2360,7 @@ function cseqSubmit() {
         positions: [...cseqBuilder]
     });
     localStorage.setItem(CLAVE_CUSTOM_SEQS, JSON.stringify(seqs));
+    if (window.FB) window.FB.pushCustom(cargarCustomProgs(), seqs);
     cseqBuilder = [];
     if (nameEl) nameEl.value = '';
     renderCseqPreview();
@@ -2367,6 +2370,7 @@ function cseqSubmit() {
 function deleteCseq(id) {
     const seqs = cargarCustomSeqs().filter(s => s.id !== id);
     localStorage.setItem(CLAVE_CUSTOM_SEQS, JSON.stringify(seqs));
+    if (window.FB) window.FB.pushCustom(cargarCustomProgs(), seqs);
     renderCseqList();
 }
 
