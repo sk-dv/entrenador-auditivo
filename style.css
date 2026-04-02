@@ -421,7 +421,22 @@
         font-size: 0.65rem;
         color: var(--ink-mid);
         line-height: 1.65;
+        margin-bottom: 0.5rem;
+    }
+
+    .cc-insight {
+        font-size: 0.62rem;
+        color: var(--ink-mid);
+        line-height: 1.6;
+        font-style: italic;
+        border-left: 2px solid var(--rule);
+        padding-left: 0.6rem;
         margin-bottom: 0.65rem;
+    }
+
+    .cc-insight strong {
+        color: var(--ink);
+        font-style: normal;
     }
 
     .cc-int-box {
@@ -1209,6 +1224,24 @@
         font-weight: 500;
     }
 
+    .int-why-row {
+        background: rgba(26, 23, 20, 0.03);
+    }
+
+    .int-why-label {
+        font-size: 0.58rem;
+        color: var(--ink-faint);
+        font-style: italic;
+        font-weight: 400 !important;
+    }
+
+    .int-why-val {
+        font-size: 0.62rem;
+        color: var(--ink-mid);
+        font-style: italic;
+        line-height: 1.45;
+    }
+
     .reveal-panel {
         display: none;
         margin-top: 1.5rem;
@@ -1254,6 +1287,19 @@
     .rev-pill.acc {
         background: rgba(255, 255, 255, 0.2);
         color: white;
+    }
+
+    .rev-insight {
+        margin-top: 0.9rem;
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.6;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: 0.75rem;
+    }
+
+    .rev-insight strong {
+        color: rgba(255, 255, 255, 0.95);
     }
 
     .next-btn {

@@ -110,14 +110,26 @@ const BASE_MIDI = 48; // Do3
 function generarAcordes() {
     const INT_INFO = {
         mayor: {
-            fundamental: { int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · sólido · conclusivo' },
-            primera:     { int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)',  intKey: 'inv1-int', color: 'Suave · fluido · atenúa' },
-            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª Mayor (9 st)', intKey: 'inv2-int', color: 'Tenso · suspendido · exponencializa' },
+            fundamental: { int1: '3ª Mayor (4 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · sólido · conclusivo',
+                int1Why: 'define el carácter Mayor — brillante y abierto',
+                int2Why: 'cierra sin generar tensión — sin 4ª desde el bajo, el oído descansa' },
+            primera:     { int1: '3ª menor (3 st)', int2: '6ª Mayor (9 st)',  intKey: 'inv1-int', color: 'Suave · fluido · atenúa',
+                int1Why: 'la 3ª en el bajo suaviza el ancla — ya no manda la raíz',
+                int2Why: 'la 6ª reemplaza a la 5ª — más abierto y ligero, menos conclusivo' },
+            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª Mayor (9 st)', intKey: 'inv2-int', color: 'Tenso · suspendido · exponencializa',
+                int1Why: '⚠ la 4ª desde el bajo es el intervalo más inestable — el oído pide resolver',
+                int2Why: 'la 6ª amplifica la tensión de la 4ª — el acorde necesita continuar' },
         },
         menor: {
-            fundamental: { int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · oscuro · peso completo' },
-            primera:     { int1: '3ª Mayor (4 st)', int2: '6ª menor (8 st)', intKey: 'inv1-int', color: 'Suave · atenúa · menor ligero' },
-            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª menor (8 st)', intKey: 'inv2-int', color: 'Tenso · sombríamente inestable' },
+            fundamental: { int1: '3ª menor (3 st)', int2: '5ª Justa (7 st)',  intKey: 'fund-int', color: 'Estable · oscuro · peso completo',
+                int1Why: 'define el carácter menor — oscuro y cerrado',
+                int2Why: 'completa sin añadir tensión — peso oscuro, nada pide continuar' },
+            primera:     { int1: '3ª Mayor (4 st)', int2: '6ª menor (8 st)', intKey: 'inv1-int', color: 'Suave · atenúa · menor ligero',
+                int1Why: 'la 3ª menor en el bajo — alivia el peso, con color sombrío',
+                int2Why: 'la 6ª menor arriba — más abierto que la 5ª, pero con oscuridad' },
+            segunda:     { int1: '4ª Justa (5 st)', int2: '6ª menor (8 st)', intKey: 'inv2-int', color: 'Tenso · sombríamente inestable',
+                int1Why: '⚠ la 4ª desde el bajo suspende el acorde — inestable y urgente',
+                int2Why: 'la 6ª menor oscurece la tensión — inestabilidad sombría y densa' },
         }
     };
     const acordes = [];
@@ -263,17 +275,29 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawe
 
 // ─── FEEDBACK PEDAGÓGICO ──────────────────────────────────────────
 const QUALITY_FEEDBACK = {
-    'mayor→menor': 'Mayor: la 3ª Mayor (4 st) lo hace brillante y abierto. Menor: 3ª menor (3 st) — un semitono abajo, más oscuro y tenso.',
-    'menor→mayor': 'Menor: la 3ª menor (3 st) da ese color oscuro y cerrado. Mayor: 3ª Mayor (4 st) — más brillante y estable.',
+    'mayor→menor': 'Era Menor. La 3ª menor (3 st) es un semitono más chica — eso es lo que lo vuelve oscuro y cerrado. Mayor tiene 3ª Mayor (4 st): un semitono más grande, brillante y abierto.',
+    'menor→mayor': 'Era Mayor. La 3ª Mayor (4 st) es un semitono más grande — brillante y abierto. Menor tiene 3ª menor (3 st): un semitono menos, más oscuro y denso.',
 };
 
 const POS_FEEDBACK = {
-    'fundamental→primera': '1ª Inversión: la 3ª está en el bajo — suena más ligero y fluido que la Fundamental (raíz en el bajo).',
-    'fundamental→segunda': '2ª Inversión: la 5ª en el bajo genera una 4ª muy inestable — buscá esa flotación tensa.',
-    'primera→fundamental': 'Fundamental: la raíz en el bajo da peso y reposo sólido — más cerrado que la 1ª Inversión (3ª en el bajo).',
-    'primera→segunda': '2ª Inversión: 4ª en el bajo, más inestable y flotante que la 1ª Inversión (3ª en el bajo).',
-    'segunda→fundamental': 'Fundamental: peso sólido, la raíz en el bajo — sin esa 4ª inestable de la 2ª Inversión.',
-    'segunda→primera': '1ª Inversión: 3ª en el bajo, suave y fluida — menos tensa que la 2ª Inversión (4ª en el bajo).',
+    'fundamental→primera': 'Era 1ª Inversión: la 3ª en el bajo reemplaza a la raíz — eso alivia el peso y hace fluir el acorde. Fundamental tiene la raíz en el bajo: más sólido y conclusivo.',
+    'fundamental→segunda': 'Era 2ª Inversión: la 5ª en el bajo genera una 4ª Justa hacia arriba — el intervalo más inestable. Buscá esa sensación de flotación y urgencia, muy diferente al reposo de la Fundamental.',
+    'primera→fundamental': 'Era Fundamental: la raíz en el bajo ancla el acorde — peso sólido, ya llegó. 1ª Inversión tiene la 3ª en el bajo: más ligera. Acá debías sentir que el acorde no va a ningún lado.',
+    'primera→segunda': 'Era 2ª Inversión: la 4ª Justa desde el bajo crea inestabilidad — suspendido, necesita seguir. 1ª Inversión es más suave (3ª en el bajo, sin esa 4ª tensa).',
+    'segunda→fundamental': 'Era Fundamental: raíz en el bajo, reposo sólido y conclusivo — sin la 4ª tensa de la 2ª Inversión. Fundamental ya llegó, no pide nada.',
+    'segunda→primera': 'Era 1ª Inversión: la 3ª en el bajo, suave y fluida. 2ª Inversión tiene la 4ª Justa desde el bajo — mucho más tensa. La 1ª es "del medio": fluye pero no suspende.',
+};
+
+const POS_CORRECT_FEEDBACK = {
+    'fundamental': '✓ Raíz en el bajo — la 5ª Justa arriba completa el acorde sin tensión. El ancla más sólida.',
+    'primera':     '✓ La 3ª en el bajo es lo que lo hace ligero y fluido — la raíz ya no manda.',
+    'segunda':     '✓ La 4ª Justa desde el bajo es el intervalo más inestable — reconociste esa urgencia.',
+};
+
+const REV_INSIGHT = {
+    'fundamental': 'La <strong>raíz en el bajo</strong> ancla el acorde. La <strong>5ª Justa</strong> arriba completa sin tensión. El oído descansa — nada pide continuar.',
+    'primera':     'La <strong>3ª en el bajo</strong> desplaza a la raíz. Sin ese ancla, el acorde flota y fluye. La <strong>6ª</strong> arriba abre más que la 5ª — menos conclusivo.',
+    'segunda':     'La <strong>4ª Justa desde el bajo</strong> es el intervalo más inestable en este contexto. El oído la percibe suspendida — pide resolución y amplifica la energía.',
 };
 
 function showFeedbackTip(id, msg) {
@@ -426,7 +450,9 @@ function answerStep2(answer) {
     btns[order.indexOf(answer)].classList.add(correct ? 'selected-correct' : 'selected-wrong');
     if (!correct) {
         showFeedbackTip('invFeedback', POS_FEEDBACK[answer + '→' + current.type] || '');
-    } else { hideFeedbackTip('invFeedback'); }
+    } else {
+        showFeedbackTip('invFeedback', POS_CORRECT_FEEDBACK[current.type] || '');
+    }
     document.getElementById('step2').classList.replace('active', 'done');
     document.getElementById('step3').classList.add('active'); phase = 'step3';
 }
@@ -443,6 +469,8 @@ function answerStep3(answer) {
     document.getElementById('iTopNote').textContent = current.notes[2];
     document.getElementById('iInt1').textContent = current.int1 + ' → ' + current.bassNote + ' a ' + current.notes[1];
     document.getElementById('iInt2').textContent = current.int2 + ' → ' + current.bassNote + ' a ' + current.notes[2];
+    document.getElementById('iInt1Why').textContent = current.int1Why || '';
+    document.getElementById('iInt2Why').textContent = current.int2Why || '';
     document.getElementById('intervalReveal').classList.add('visible');
     document.getElementById('step3').classList.replace('active', 'done');
     showReveal(); phase = 'done';
@@ -451,6 +479,8 @@ function answerStep3(answer) {
 function showReveal() {
     document.getElementById('revName').textContent = current.name + ' — ' + TYPE_LABELS[current.type];
     document.getElementById('revSub').textContent = current.flavour;
+    const insightEl = document.getElementById('revInsight');
+    if (insightEl) insightEl.innerHTML = REV_INSIGHT[current.type] || '';
     document.getElementById('revPills').innerHTML = [
         { t: current.degree, a: true },
         { t: current.quality === 'mayor' ? 'Mayor' : 'Menor', a: false },
