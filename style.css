@@ -472,6 +472,50 @@
         color: var(--ink-mid);
     }
 
+    .root-rule-box {
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .root-rule-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .root-rule-row:last-child { border-bottom: none; }
+
+    .rr-pos {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 2px;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+
+    .rr-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .rr-rule {
+        font-size: 0.67rem;
+        color: var(--ink);
+    }
+
+    .rr-why {
+        font-size: 0.6rem;
+        color: var(--ink-faint);
+        font-style: italic;
+    }
+
     /* ── EXPLORER ── */
     .explorer-area {
         background: var(--paper);
@@ -3077,6 +3121,20 @@
         margin-bottom: 0.2rem;
     }
     .feedback-tip.visible { display: block; }
+
+    .root-hint {
+        display: none;
+        font-size: 0.62rem;
+        font-style: italic;
+        color: var(--ink-mid);
+        background: rgba(26, 23, 20, 0.04);
+        border-left: 3px solid var(--rule);
+        padding: 0.4rem 0.7rem;
+        border-radius: 0 3px 3px 0;
+        margin-top: 0.5rem;
+    }
+
+    .root-hint.visible { display: block; }
 
     /* ── RACHAS ── */
     .racha-bar {

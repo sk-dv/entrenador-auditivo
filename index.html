@@ -149,9 +149,34 @@
                 <div class="step-block">
                     <div class="step-num-line">
                         <div class="step-circle">3</div>
-                        <div class="s-title">Los intervalos</div>
+                        <div class="s-title">La raíz</div>
                     </div>
-                    <div class="s-desc">3ª+5ª · 3ª+6ª · 4ª+6ª — siempre contados desde el bajo.</div>
+                    <div class="s-desc">¿Cuál de las tres notas es la raíz? No siempre es el bajo.</div>
+                </div>
+            </div>
+
+            <span class="sec-label">Cómo encontrar la raíz en cualquier inversión</span>
+            <div class="root-rule-box">
+                <div class="root-rule-row">
+                    <span class="rr-pos tag-fund">Fundamental</span>
+                    <div class="rr-content">
+                        <span class="rr-rule">La raíz es la nota <strong>más grave</strong></span>
+                        <span class="rr-why">— es el bajo, el ancla directa</span>
+                    </div>
+                </div>
+                <div class="root-rule-row">
+                    <span class="rr-pos tag-inv1">1ª Inversión</span>
+                    <div class="rr-content">
+                        <span class="rr-rule">La raíz es la nota <strong>más aguda</strong></span>
+                        <span class="rr-why">— subió una octava al invertir</span>
+                    </div>
+                </div>
+                <div class="root-rule-row">
+                    <span class="rr-pos tag-inv2">2ª Inversión</span>
+                    <div class="rr-content">
+                        <span class="rr-rule">La raíz es la nota <strong>del medio</strong></span>
+                        <span class="rr-why">— entre la 5ª (bajo) y la 3ª (cima)</span>
+                    </div>
                 </div>
             </div>
 
@@ -286,13 +311,10 @@
                     <div class="q-step" id="step3">
                         <div class="q-step-header">
                             <div class="step-circle-sm" id="sc3">3</div>
-                            <div class="q-step-title">¿Qué intervalos desde el bajo?</div>
+                            <div class="q-step-title">¿Cuál es la raíz del acorde?</div>
                         </div>
-                        <div class="choice-row">
-                            <button class="choice-btn" onclick="answerStep3('fund-int')">3ª + 5ª</button>
-                            <button class="choice-btn" onclick="answerStep3('inv1-int')">3ª + 6ª</button>
-                            <button class="choice-btn" onclick="answerStep3('inv2-int')">4ª + 6ª</button>
-                        </div>
+                        <div class="choice-row" id="rootChoiceRow"></div>
+                        <div class="root-hint" id="rootHint"></div>
                         <div class="interval-reveal" id="intervalReveal">
                             <br>
                             <div class="interval-table">

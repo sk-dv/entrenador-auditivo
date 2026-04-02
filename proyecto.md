@@ -123,14 +123,6 @@ Categorías: 2 acordes (cadencias), 3 acordes, 4 acordes, circulares 3-5 acordes
 
 ---
 
-## Bugs conocidos / Notas
-
-- El III (Mi menor) usa MIDIs en registro bajo [52,55,59] — sonar un poco oscuro es intencional pero puede causar confusión en el modo Funciones (comparte notas con I y V)
-- El modo "Completar" muestra los acordes del prefijo como referencia visual — decisión pedagógica intencional (el usuario ya los escuchó, verlos conecta oído con teoría)
-- En iOS Safari, el AudioContext puede suspenderse tras ~30s en segundo plano; hay recovery automático en `visibilitychange`
-
----
-
 ## Historial de cambios relevantes
 
 | Fecha | Cambio |

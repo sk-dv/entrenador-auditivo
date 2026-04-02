@@ -288,6 +288,19 @@ const POS_FEEDBACK = {
     'segunda→primera': 'Era 1ª Inversión: la 3ª en el bajo, suave y fluida. 2ª Inversión tiene la 4ª Justa desde el bajo — mucho más tensa. La 1ª es "del medio": fluye pero no suspende.',
 };
 
+const ROOT_HINT = {
+    fundamental: 'pista: en posición fundamental, la raíz es la nota más grave (el bajo)',
+    primera:     'pista: en 1ª inversión, la raíz es la nota más aguda',
+    segunda:     'pista: en 2ª inversión, la raíz es la nota del medio',
+};
+
+function shouldShowRootHint(type) {
+    const det = (cargarProgreso().detalle || {}).raiz || {};
+    const [ok, tot] = det[type] || [0, 0];
+    if (tot < 5) return true;
+    return (ok / tot) < 0.75;
+}
+
 const POS_CORRECT_FEEDBACK = {
     'fundamental': '✓ Raíz en el bajo — la 5ª Justa arriba completa el acorde sin tensión. El ancla más sólida.',
     'primera':     '✓ La 3ª en el bajo es lo que lo hace ligero y fluido — la raíz ya no manda.',
@@ -402,9 +415,32 @@ function startRound() {
     });
     document.getElementById('step1').classList.add('active');
     document.getElementById('scoreRound').textContent = '#' + roundNum;
+    buildRootButtons();
     const pb = document.getElementById('playBtn');
     pb.classList.add('ringing'); setTimeout(() => pb.classList.remove('ringing'), 400);
     playChord(current.midis, playMode === 'arp' ? ARP_DELAYS[0] : 0);
+}
+
+function buildRootButtons() {
+    const notes = [...current.notes];
+    for (let i = notes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [notes[i], notes[j]] = [notes[j], notes[i]];
+    }
+    const row = document.getElementById('rootChoiceRow');
+    if (row) row.innerHTML = notes.map(n =>
+        `<button class="choice-btn" onclick="answerStep3('${n}')">${n}</button>`
+    ).join('');
+    const hintEl = document.getElementById('rootHint');
+    if (hintEl) {
+        if (shouldShowRootHint(current.type)) {
+            hintEl.textContent = ROOT_HINT[current.type];
+            hintEl.classList.add('visible');
+        } else {
+            hintEl.textContent = '';
+            hintEl.classList.remove('visible');
+        }
+    }
 }
 
 function repeatChord() {
@@ -459,11 +495,15 @@ function answerStep2(answer) {
 
 function answerStep3(answer) {
     hideFeedbackTip('invFeedback');
-    const correct = INTERVAL_MAP[answer] === current.type; markStep(3, correct);
-    const order = ['fund-int', 'inv1-int', 'inv2-int'];
-    const btns = document.getElementById('step3').querySelectorAll('.choice-btn');
-    btns.forEach((b, i) => { b.disabled = true; if (order[i] === current.intKey && !correct) b.classList.add('reveal-correct'); });
-    btns[order.indexOf(answer)].classList.add(correct ? 'selected-correct' : 'selected-wrong');
+    const correct = answer === current.root; markStep(3, correct);
+    registrarDetalle('raiz', current.type, correct);
+    const btns = document.getElementById('rootChoiceRow').querySelectorAll('.choice-btn');
+    btns.forEach(b => {
+        b.disabled = true;
+        if (b.textContent === current.root && !correct) b.classList.add('reveal-correct');
+    });
+    const answeredBtn = [...btns].find(b => b.textContent === answer);
+    if (answeredBtn) answeredBtn.classList.add(correct ? 'selected-correct' : 'selected-wrong');
     document.getElementById('iBasNote').textContent = current.bassNote + ' (es la ' + current.bassRole + ')';
     document.getElementById('iMidNote').textContent = current.notes[1];
     document.getElementById('iTopNote').textContent = current.notes[2];
