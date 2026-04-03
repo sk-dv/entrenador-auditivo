@@ -1,0 +1,11 @@
+{
+  "name": "Oído Armónico",
+  "short_name": "Oído",
+  "description": "Entrenamiento auditivo para acordes, inversiones y grados tonales",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#1a1714",
+  "lang": "es",
+  "icons": []
+}

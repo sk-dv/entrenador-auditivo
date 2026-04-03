@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oído Armónico — Inversiones</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a1714">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Oído">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -1143,6 +1148,47 @@
             const pop = document.getElementById('volPopover');
             if (pop && !pop.contains(e.target)) pop.classList.remove('open');
         });
+    </script>
+
+    <!-- ── PWA: update banner ── -->
+    <div id="swUpdateBanner" style="display:none;position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);
+        background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:0.65rem;
+        letter-spacing:0.06em;padding:0.55rem 1rem;border-radius:3px;z-index:9998;
+        display:none;align-items:center;gap:0.8rem;white-space:nowrap;">
+        nueva versión disponible
+        <button onclick="swUpdate()" style="background:rgba(255,255,255,0.15);border:none;color:inherit;
+            font-family:inherit;font-size:inherit;padding:3px 10px;border-radius:2px;cursor:pointer;">
+            actualizar
+        </button>
+    </div>
+
+    <!-- ── PWA: service worker registration ── -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                reg.addEventListener('updatefound', () => {
+                    const sw = reg.installing;
+                    sw.addEventListener('statechange', () => {
+                        if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+                            document.getElementById('swUpdateBanner').style.display = 'flex';
+                        }
+                    });
+                });
+            });
+        }
+        function swUpdate() {
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg && reg.waiting) {
+                    reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    reg.waiting.addEventListener('statechange', e => {
+                        if (e.target.state === 'activated') location.reload();
+                    });
+                } else {
+                    location.reload();
+                }
+            });
+        }
+        navigator.serviceWorker && navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
     </script>
 </body>
 
