@@ -54,6 +54,21 @@ function leerCustomLocal() {
     return { progs, seqs };
 }
 
+// Fusiona dos objetos detalle: { modulo: { key: [ok, tot] } }
+// Para cada key, gana el que tenga mayor total (más práctica acumulada)
+function mergeDetalle(local, remote) {
+    const result = { ...remote };
+    for (const mod of Object.keys(local)) {
+        if (!result[mod]) result[mod] = {};
+        for (const key of Object.keys(local[mod])) {
+            const [lok, ltot] = local[mod][key] || [0, 0];
+            const [rok, rtot] = result[mod][key] || [0, 0];
+            result[mod][key] = ltot > rtot ? [lok, ltot] : [rok, rtot];
+        }
+    }
+    return result;
+}
+
 // ─── Sync: Firestore → localStorage + refresca UI ─────────────────
 async function syncToLocal(uid) {
     // ── Progreso ──────────────────────────────────────────────────
@@ -63,11 +78,17 @@ async function syncToLocal(uid) {
         try { local = JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch {}
         const fusionado = { ...remoto };
         for (const k of Object.keys(local)) {
-            if (Array.isArray(local[k]) && Array.isArray(remoto[k])) {
+            if (k === 'detalle') {
+                fusionado.detalle = mergeDetalle(local.detalle || {}, remoto.detalle || {});
+            } else if (Array.isArray(local[k]) && Array.isArray(remoto[k])) {
                 fusionado[k] = local[k].length > remoto[k].length ? local[k] : remoto[k];
             }
         }
         localStorage.setItem(CLAVE, JSON.stringify(fusionado));
+        // Si local tenía detalle nuevo, subir la fusión a Firebase
+        if (local.detalle && JSON.stringify(fusionado.detalle) !== JSON.stringify(remoto.detalle || {})) {
+            guardarEnFirestore(uid, fusionado).catch(console.error);
+        }
     }
 
     // ── Custom progs & seqs (merge bidireccional) ─────────────────
@@ -97,7 +118,8 @@ async function syncToLocal(uid) {
 
 function refrescarUI() {
     ['initHistoriales', 'updateInvProgress', 'updatePosProgress',
-     'updateGradosProgress', 'updateProgProgress', 'updateDictProgress'
+     'updateGradosProgress', 'updateProgProgress', 'updateDictProgress',
+     'updateIntProgress'
     ].forEach(fn => { if (typeof window[fn] === 'function') window[fn](); });
 }
 
@@ -158,6 +180,14 @@ onAuthStateChanged(auth, async user => {
         if (nameEl)   nameEl.textContent     = '';
         if (avatarEl) avatarEl.style.display = 'none';
         if (syncBtn)  syncBtn.style.display  = 'none';
+    }
+});
+
+// ─── Re-sync al volver a la app (cross-device) ───────────────────
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        const uid = auth.currentUser?.uid;
+        if (uid) syncToLocal(uid).catch(console.error);
     }
 });
 

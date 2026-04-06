@@ -50,12 +50,16 @@ Seis modos de entrenamiento:
 - 10 intervalos diatónicos (2ª m a 8ª)
 - Dirección: ascendente / descendente / simultáneo
 - Selección activa de intervalos a practicar
+- **Panel adaptativo por intervalo**: barra de % acierto por cada intervalo (2ª menor, 3ª Mayor, etc.) con recomendación del más débil
 
 ---
 
 ## Sistema de progreso
-- **localStorage** clave `oido_armonico_v1`
-- **Firebase Firestore** — sincronización por usuario (auth con Google)
+- **localStorage** clave `oido_armonico_v1` (caché local)
+- **Firebase Firestore** — sincronización por usuario (auth con Google); push automático en cada respuesta
+- Merge bidireccional al login: fusiona detalle por módulo/key (gana el de mayor total acumulado)
+- Re-sync automático al volver a la app (`visibilitychange`) — permite uso cross-device sin re-login
+- **PWA**: manifest.json + service worker (cache-first para assets propios)
 - Selección adaptativa por módulo: el sistema prioriza lo más débil
 - Historial de últimas 10 rondas con trend arrow (↑ ↓ →)
 - Rachas (streak ≥ 70%)
@@ -105,7 +109,6 @@ Categorías: 2 acordes (cadencias), 3 acordes, 4 acordes, circulares 3-5 acordes
 ## Ideas pendientes / Backlog
 
 ### Alta prioridad
-- [ ] **PWA**: manifest.json + service worker para uso offline
 - [ ] **Firebase AI Logic (Gemini)**: análisis personalizado de progreso, sugerencias de ejercicios
 
 ### Media prioridad
@@ -127,6 +130,7 @@ Categorías: 2 acordes (cadencias), 3 acordes, 4 acordes, circulares 3-5 acordes
 
 | Fecha | Cambio |
 |-------|--------|
+| abr-2026 | Panel adaptativo por intervalo en tab ⑥; merge detalle cross-device; re-sync en visibilitychange |
 | mar-2026 | Modos Funciones, Cadencias, Tonal/Modal, Completar en tab Grados |
 | mar-2026 | Campo `funcion` en DEGREES, arrays CADENCE_TYPES y MODAL_PROGS |
 | mar-2026 | `playMidiSequence()` para acordes en inversión |

@@ -2650,6 +2650,26 @@ function answerInt(id) {
     }
 }
 
+function updateIntProgress() {
+    const INT_TIPS = {
+        m2: 'Muy disonante y tenso — pensá en el inicio de "Jaws" (tiburón).',
+        M2: 'Sonido de escala, stepwise — "Happy Birthday" empieza con una 2ª Mayor.',
+        m3: 'Oscuro y melancólico — "Smoke on the Water", primeras dos notas del riff.',
+        M3: 'Brillante y mayor — "When the Saints Go Marching In" empieza con una 3ª Mayor.',
+        P4: 'Suena a himno o llamada — "El Himno Nacional" sube una 4ª al inicio.',
+        TT: 'El más tenso e inestable — "The Simpsons" tema principal usa tritono.',
+        P5: 'Abierto y estable — "Star Wars" empieza con una 5ª Justa ascendente.',
+        m6: 'Suave y melancólico — "El Reloj" de Roberto Cantoral contiene 6ªs menores.',
+        M6: 'Cálido y cantabile — "My Bonnie Lies Over the Ocean" sube una 6ª Mayor.',
+        m7: 'Bluesy y tenso — el intro de "Somewhere" de West Side Story.',
+        M7: 'Muy disonante, choca casi con la octava — "Take On Me" de A-ha.',
+        P8: 'Puro y estable — la misma nota una octava arriba, "Somewhere Over the Rainbow".',
+    };
+    const items = INT_POOL.map(iv => iv.id);
+    const labels = Object.fromEntries(INT_POOL.map(iv => [iv.id, iv.name]));
+    renderAdapPanel('intervalos', items, labels, INT_TIPS, 'intProgBars', 'intFocusHint', 3);
+}
+
 function showIntReveal() {
     const ok  = intTestSeq.filter(x => x.result).length;
     const tot = INT_ROUND_LEN;
@@ -2676,6 +2696,7 @@ function showIntReveal() {
     }).join('');
     document.getElementById('intScore').textContent = intTotalOk + '/' + intTotalTot;
     document.getElementById('intRevealPanel').classList.add('visible');
+    updateIntProgress();
 }
 
 function intPlayAudio(iv, rootMidi) {
@@ -2705,6 +2726,7 @@ function initIntervalos() {
     }
     renderHistorial('intervalos');
     renderRacha('intervalos');
+    updateIntProgress();
 }
 
 // ─── SAFARI AUDIO RECOVERY ───────────────────────────────────────
