@@ -5,8 +5,9 @@ function switchTab(name) {
         document.getElementById('tab-' + n).classList.toggle('active', n === name);
     });
     if (name === 'practicar') { updateInvProgress(); updatePosProgress(); }
-    if (name === 'grados')    { updateGradosProgress(); updateProgProgress(); updateFuncionProgress(); updateCadenciaProgress(); updateModalProgress(); updateCompletarProgress(); }
+    if (name === 'grados')    { updateProgresivoProg(); updateGradosProgress(); updateProgProgress(); updateFuncionProgress(); updateCadenciaProgress(); updateModalProgress(); updateCompletarProgress(); }
     if (name === 'dictado')   { updateDictProgress(); }
+    if (name === 'intervalos') { updateIntProgress(); }
 }
 
 // ─── AUDIO ───────────────────────────────────────────────────────
@@ -548,6 +549,9 @@ function updateScoreUI() {
 const DEGREES = [
     {
         num: 'I', name: 'Tónica', quality: 'mayor', funcion: 'tonica',
+        subfuncion: 'tonica_principal', subfuncionLabel: 'Tónica Principal',
+        movNatural: ['IV', 'V', 'VI'],
+        movNaturalDesc: 'es el hogar — puede partir hacia cualquier función',
         chordName: 'Do Mayor', notes: ['Do', 'Mi', 'Sol'], midis: [60, 64, 67],
         feeling: '"Llegué. Reposo absoluto."',
         desc: 'La base de todo. El hogar tonal. Cualquier frase musical se siente completa cuando llega aquí.',
@@ -558,9 +562,12 @@ const DEGREES = [
     },
     {
         num: 'II', name: 'Supertónica', quality: 'menor', funcion: 'subdominante',
+        subfuncion: 'subdominante_modal', subfuncionLabel: 'Subdominante Modal',
+        movNatural: ['V', 'IV'],
+        movNaturalDesc: 'II → V → I es la cadencia del jazz y el bolero',
         chordName: 'Re menor', notes: ['Re', 'Fa', 'La'], midis: [62, 65, 69],
         feeling: '"Puente íntimo. Quiero moverme."',
-        desc: 'Acorde menor sobre la segunda nota. Tiene una tensión suave que pide resolver hacia el V o el IV. Muy común en cadencias y en la progresión II-V-I del jazz.',
+        desc: 'Acorde menor sobre la segunda nota. Subdominante suave — sin el tritono del IV. Muy común en cadencias y en la progresión II-V-I.',
         color: '#c4886e',
         prog: 'I → II → V → I — cadencia con supertónica',
         ref: '"Cielito Lindo" pasa por el II en el verso · cadencia II-V-I muy usada en bolero',
@@ -568,19 +575,25 @@ const DEGREES = [
     },
     {
         num: 'III', name: 'Mediante', quality: 'menor', funcion: 'tonica',
+        subfuncion: 'mediador', subfuncionLabel: 'Mediador',
+        movNatural: ['VI', 'IV'],
+        movNaturalDesc: 'media entre tónica y dominante — comparte notas con I y V',
         chordName: 'Mi menor', notes: ['Mi', 'Sol', 'Si'], midis: [52, 55, 59],
         feeling: '"Íntimo. Un poco oscuro."',
-        desc: 'Acorde menor sobre la tercera nota. Comparte dos notas con el I (Mi, Sol) y dos con el V (Sol, Si). Ambiguo y expresivo.',
+        desc: 'Acorde menor sobre la tercera nota. Comparte dos notas con el I (Mi, Sol) y dos con el V (Sol, Si). Ambiguo y expresivo — puede ir al VI o al IV.',
         color: '#9b8ec4',
-        prog: 'I → III → IV — movimiento descendente con emoción',
+        prog: 'I → III → VI — movimiento hacia el relativo menor',
         ref: '"El Rey" (José Alfredo) — el III aparece en el puente antes del IV',
         qualityLabel: 'menor'
     },
     {
         num: 'IV', name: 'Subdominante', quality: 'mayor', funcion: 'subdominante',
+        subfuncion: 'subdominante_tonal', subfuncionLabel: 'Subdominante Tonal',
+        movNatural: ['V', 'I'],
+        movNaturalDesc: 'IV → V (tensión creciente) o IV → I (cadencia plagal, el "amén")',
         chordName: 'Fa Mayor', notes: ['Fa', 'La', 'Do'], midis: [53, 57, 60],
         feeling: '"Me alejo del centro."',
-        desc: 'Cálido y amplio. Tensión de salida — lleva al V con urgencia o regresa al I con calidez (cadencia plagal "amén").',
+        desc: 'Cálido y amplio. Subdominante fuerte — crea el tritono con el VII. Lleva al V con urgencia o regresa al I con calidez.',
         color: '#d4aa3e',
         prog: 'I → IV → V → I · I → IV → I (plagal "amén")',
         ref: '"La Bamba" — el IV es el segundo acorde de toda la canción',
@@ -588,9 +601,12 @@ const DEGREES = [
     },
     {
         num: 'V', name: 'Dominante', quality: 'mayor', funcion: 'dominante',
+        subfuncion: 'dominante_tonal', subfuncionLabel: 'Dominante Tonal',
+        movNatural: ['I', 'VI'],
+        movNaturalDesc: 'V → I (cadencia auténtica) o V → VI (cadencia rota — sorpresa)',
         chordName: 'Sol Mayor', notes: ['Sol', 'Si', 'Re'], midis: [55, 59, 62],
         feeling: '"Tengo que resolver. Ahora."',
-        desc: 'La tensión más fuerte de la tonalidad. El Si (sensible) pide subir al Do. Motor de toda la armonía tonal.',
+        desc: 'La tensión más fuerte de la tonalidad. El Si (sensible) pide subir al Do. Dominante tonal — la gravedad de toda la armonía.',
         color: '#e07a3a',
         prog: 'V → I: cadencia auténtica, la más conclusiva',
         ref: '"Himno Nacional" — cada final de frase cae de V a I',
@@ -598,14 +614,29 @@ const DEGREES = [
     },
     {
         num: 'VI', name: 'Superdominante', quality: 'menor', funcion: 'tonica',
+        subfuncion: 'tonica_relativa', subfuncionLabel: 'Tónica Relativa',
+        movNatural: ['IV', 'II'],
+        movNaturalDesc: 'VI → IV → V → I — el camino de la "progresión del pop"',
         chordName: 'La menor', notes: ['La', 'Do', 'Mi'], midis: [57, 60, 64],
         feeling: '"Nostalgia. El lado oscuro."',
-        desc: 'El relativo menor de Do. Oscuro pero estable. Base de la progresión I-V-VI-IV (pop, rock, bolero).',
+        desc: 'El relativo menor de Do. Reposo oscuro pero estable. Es la tónica del modo menor de la misma escala.',
         color: '#6abfb0',
         prog: 'I → V → VI → IV — la "progresión del pop"',
         ref: '"La Cucaracha" pasa por este acorde · "Bésame Mucho" lo usa como punto de partida',
         qualityLabel: 'menor'
     },
+];
+
+// ─── GRADOS EN LA MENOR NATURAL (referencia) ─────────────────────
+// Solo para la tabla de funciones — no se quizzan
+const DEGREES_MENOR = [
+    { num:'i',   chordName:'La menor',  quality:'menor', subfuncion:'tonica_principal',      subfuncionLabel:'Tónica',                label:'Tónica',          sub:'(menor)',            color:'#4caf7d' },
+    { num:'II°', chordName:'Si dim',    quality:'menor', subfuncion:'dominante_modulatoria', subfuncionLabel:'Dominante Modulatoria', label:'Dom. Modulatoria', sub:'(disminuido)',        color:'#c0392b' },
+    { num:'III', chordName:'Do Mayor',  quality:'mayor', subfuncion:'tonica_relativa',       subfuncionLabel:'Tónica Relativa',       label:'Tónica',          sub:'Relativa (Mayor)',    color:'#6abfb0' },
+    { num:'iv',  chordName:'Re menor',  quality:'menor', subfuncion:'subdominante_modal',    subfuncionLabel:'Subdominante Modal',    label:'Subdominante',    sub:'modal (menor)',       color:'#c4886e' },
+    { num:'v',   chordName:'Mi menor',  quality:'menor', subfuncion:'dominante_modal',       subfuncionLabel:'Dominante Modal',       label:'Dominante',       sub:'modal (menor)',       color:'#c88850' },
+    { num:'VI',  chordName:'Fa Mayor',  quality:'mayor', subfuncion:'subdominante_tonal',    subfuncionLabel:'Subdominante Tonal',    label:'Subdominante',    sub:'Tonal (Mayor)',       color:'#d4aa3e' },
+    { num:'VII', chordName:'Sol Mayor', quality:'mayor', subfuncion:'mediador',              subfuncionLabel:'Mediador',              label:'Mediador',        sub:'(Mayor)',             color:'#9b8ec4' },
 ];
 
 let currentDegree = null, degRound = 0;
@@ -619,10 +650,12 @@ function buildDegreeRef() {
     <div class="deg-num-badge" style="color:${d.color}">${d.num}</div>
     <div class="deg-chord-name">${d.chordName}</div>
     <div class="deg-quality-tag ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</div>
+    <div class="deg-subfuncion-chip">${d.subfuncionLabel}</div>
     <div class="deg-fn-name">${d.name}</div>
     <div class="deg-feeling">${d.feeling}</div>
     <div class="deg-notes-row">${d.notes.join(' · ')}</div>
     <div class="deg-prog-hint">${d.prog}</div>
+    <div class="deg-mov-hint">→ ${d.movNatural.join(', ')}: ${d.movNaturalDesc}</div>
     <div class="deg-ref-song">${d.ref}</div>
 </div>`).join('');
 
@@ -716,11 +749,12 @@ function answerDegree(num) {
         showFeedbackTip('gradFeedback', tip);
     }
     document.getElementById('degRevTitle').textContent = `${d.num} — ${d.chordName}`;
-    document.getElementById('degRevQuality').textContent = d.qualityLabel;
+    document.getElementById('degRevQuality').textContent = d.subfuncionLabel;
     document.getElementById('degRevQuality').className = 'deg-rev-quality ' + (d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor');
     document.getElementById('degRevFeeling').textContent = d.feeling;
     document.getElementById('degRevDesc').textContent = d.desc;
     document.getElementById('degRevProg').textContent = d.prog;
+    document.getElementById('degRevMov').textContent = `va naturalmente a: ${d.movNatural.join(' → ')} — ${d.movNaturalDesc}`;
     document.getElementById('degRevealPanel').classList.add('visible');
     document.getElementById('degScore').textContent = `${degScores[0]}/${degScores[1]}`;
     guardarRonda('grados', degScores[0], degScores[1]);
@@ -934,6 +968,301 @@ function weightedRand(arr) {
     return arr[arr.length - 1];
 }
 
+// ─── TABLA DE FUNCIONES (Mayor + menor natural) ───────────────────
+function buildFuncionTable() {
+    const el = document.getElementById('tablaFuncionesGrid');
+    if (!el) return;
+
+    const SF_COL = {
+        tonica_principal:      '#4caf7d',
+        tonica_relativa:       '#6abfb0',
+        mediador:              '#9b8ec4',
+        subdominante_tonal:    '#d4aa3e',
+        subdominante_modal:    '#c4886e',
+        dominante_tonal:       '#e07a3a',
+        dominante_modal:       '#c88850',
+        dominante_modulatoria: '#c0392b',
+    };
+
+    const mayorDeg = [
+        { num:'I',   sf:'tonica_principal',   label:'Tónica',       sub:'Principal' },
+        { num:'II',  sf:'subdominante_modal',  label:'Subdominante', sub:'Modal (menor)' },
+        { num:'III', sf:'mediador',            label:'Mediador',     sub:'(menor)' },
+        { num:'IV',  sf:'subdominante_tonal',  label:'Subdominante', sub:'Tonal (Mayor)' },
+        { num:'V',   sf:'dominante_tonal',     label:'Dominante',    sub:'Tonal (Mayor)' },
+        { num:'VI',  sf:'tonica_relativa',     label:'Tónica',       sub:'Relativa (menor)' },
+        { num:'VII', sf:'dominante_tonal',     label:'Sensible/',    sub:'Dominante (dim)' },
+    ];
+
+    const menorDeg = [
+        { num:'i',   sf:'tonica_principal',      label:'Tónica',       sub:'(menor)' },
+        { num:'II°', sf:'dominante_modulatoria', label:'Dom.',         sub:'Modulatoria (dim)' },
+        { num:'III', sf:'tonica_relativa',       label:'Tónica',       sub:'Relativa (Mayor)' },
+        { num:'iv',  sf:'subdominante_modal',    label:'Subdominante', sub:'modal (menor)' },
+        { num:'v',   sf:'dominante_modal',       label:'Dominante',    sub:'modal (menor)' },
+        { num:'VI',  sf:'subdominante_tonal',    label:'Subdominante', sub:'Tonal (Mayor)' },
+        { num:'VII', sf:'mediador',              label:'Mediador',     sub:'(Mayor)' },
+    ];
+
+    const renderCell = (d) => {
+        const col = SF_COL[d.sf] || '#999';
+        const r = parseInt(col.slice(1,3),16), g = parseInt(col.slice(3,5),16), b = parseInt(col.slice(5,7),16);
+        const bgAlpha = `rgba(${r},${g},${b},0.18)`;
+        const borderCol = `rgba(${r},${g},${b},0.5)`;
+        return `<td class="tf-cell" style="background:${bgAlpha};border-color:${borderCol}">
+            <div class="tf-deg">${d.num}</div>
+            <div class="tf-func">${d.label}</div>
+            <div class="tf-sub">${d.sub}</div>
+        </td>`;
+    };
+
+    el.innerHTML = `<table class="tabla-funciones">
+        <thead>
+            <tr>
+                <th class="tf-mode-label"></th>
+                ${['I','II','III','IV','V','VI','VII'].map(h => `<th class="tf-header">${h}</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td class="tf-mode-label">Mayor</td>${mayorDeg.map(renderCell).join('')}</tr>
+            <tr><td class="tf-mode-label">menor nat.</td>${menorDeg.map(renderCell).join('')}</tr>
+        </tbody>
+    </table>`;
+}
+
+function toggleTablaFunciones() {
+    const grid = document.getElementById('tablaFuncionesGrid');
+    const btn  = document.getElementById('toggleTablaBtn');
+    const hidden = grid.classList.toggle('ref-hidden');
+    btn.textContent = hidden ? 'ver tabla de funciones ↓' : 'ocultar tabla ↑';
+}
+
+// ─── PROGRESIVO — EJERCICIO POR NIVELES ───────────────────────────
+const PROG_NIVELES = [
+    { num:1, label:'Nivel 1', grados:['I','V'],               desc:'I vs. V — máximo contraste',   hint:'Reposo absoluto vs. tensión máxima. Los dos polos.' },
+    { num:2, label:'Nivel 2', grados:['I','IV','V'],           desc:'I · IV · V — el triángulo',    hint:'Las tres funciones esenciales de toda armonía tonal.' },
+    { num:3, label:'Nivel 3', grados:['I','IV','V','VI'],      desc:'I · IV · V · VI',              hint:'Agrega la tónica relativa — el acorde oscuro y estable.' },
+    { num:4, label:'Nivel 4', grados:['I','II','III','IV','V','VI'], desc:'Los 6 grados', hint:'El sistema completo — todos los matices diatónicos.' },
+];
+
+const CLAVE_PROG_NIVEL = 'oido_progresivo_nivel';
+let progNivelMax    = 1;
+let progNivelActual = 1;
+let nivelesCurrentDeg = null;
+let nivelesPhase      = 'idle';
+let nivelesScores     = [0, 0];
+let nivelesRoundNum   = 0;
+let nivelesRepCount   = 0;
+let nivelesHistory    = [];
+
+function loadProgNivel() {
+    try {
+        const saved = parseInt(localStorage.getItem(CLAVE_PROG_NIVEL)) || 1;
+        progNivelMax = Math.min(Math.max(1, saved), 4);
+    } catch { progNivelMax = 1; }
+    progNivelActual = progNivelMax;
+}
+
+function saveProgNivel(n) {
+    localStorage.setItem(CLAVE_PROG_NIVEL, String(n));
+}
+
+function switchNivel(n) {
+    if (n > progNivelMax) return;
+    progNivelActual = n;
+    nivelesPhase = 'idle';
+    nivelesHistory = [];
+    buildNivelesBtns();
+    renderNivelInfo();
+    updateProgresivoProg();
+    document.getElementById('nivelesPlayHint').textContent = 'toca para escuchar un grado tonal';
+    document.getElementById('nivelesRepeatBtn').disabled = true;
+    document.getElementById('nivelesRevealPanel').classList.remove('visible');
+    document.querySelectorAll('.nivel-btn').forEach((b, i) => {
+        const num = i + 1;
+        b.classList.toggle('n-active', num === n);
+        b.classList.toggle('n-unlocked', num <= progNivelMax && num !== n);
+        b.classList.toggle('n-locked', num > progNivelMax);
+    });
+}
+
+function renderNivelInfo() {
+    const nivel = PROG_NIVELES[progNivelActual - 1];
+    const el = document.getElementById('nivelesInfo');
+    if (!el) return;
+    const nextUnlock = progNivelActual < 4
+        ? `<span class="nivel-info-unlock">Desbloquea Nivel ${progNivelActual + 1} con ≥75% en las últimas 10 respuestas</span>`
+        : `<span class="nivel-info-unlock" style="color:var(--correct)">Nivel máximo desbloqueado</span>`;
+    el.innerHTML = `<div class="nivel-info-block">
+        <span class="nivel-info-label">${nivel.label} — ${nivel.desc}</span>
+        <span class="nivel-info-hint">${nivel.hint}</span>
+        ${nextUnlock}
+    </div>`;
+}
+
+function buildNivelesBtns() {
+    const nivel = PROG_NIVELES[progNivelActual - 1];
+    const container = document.getElementById('nivelesBtnGrid');
+    if (!container) return;
+    const activeDeg = DEGREES.filter(d => nivel.grados.includes(d.num));
+    container.innerHTML = activeDeg.map(d =>
+        `<button class="deg-btn" data-deg="${d.num}" style="--deg-color:${d.color}" onclick="answerNiveles('${d.num}')">
+            <span class="deg-btn-num">${d.num}</span>
+            <span class="deg-btn-chord">${d.chordName}</span>
+            <span class="deg-btn-quality ${d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor'}">${d.qualityLabel}</span>
+        </button>`
+    ).join('');
+}
+
+function initNivelesBtns() {
+    loadProgNivel();
+    buildNivelesBtns();
+    renderNivelInfo();
+    updateProgresivoProg();
+    const hist = cargarProgreso()['progresivo'] || [];
+    if (hist.length > 0) {
+        nivelesScores[0] = hist.reduce((s, x) => s + x.c, 0);
+        nivelesScores[1] = hist.reduce((s, x) => s + x.t, 0);
+        nivelesRoundNum  = hist.length;
+        document.getElementById('nivelesRound').textContent = '#' + nivelesRoundNum;
+        document.getElementById('nivelesScore').textContent = nivelesScores[0] + '/' + nivelesScores[1];
+    }
+    renderHistorial('progresivo');
+    renderRacha('progresivo');
+    document.querySelectorAll('.nivel-btn').forEach((b, i) => {
+        const num = i + 1;
+        b.classList.toggle('n-active', num === progNivelActual);
+        b.classList.toggle('n-unlocked', num <= progNivelMax && num !== progNivelActual);
+        b.classList.toggle('n-locked', num > progNivelMax);
+    });
+}
+
+function startNivelesRound() {
+    hideFeedbackTip('nivelesFeedback');
+    const nivel = PROG_NIVELES[progNivelActual - 1];
+    const available = DEGREES.filter(d => nivel.grados.includes(d.num));
+    nivelesCurrentDeg = weightedPick(adaptiveWeights(available, 'grados', d => d.num));
+    nivelesRoundNum++;
+    nivelesPhase  = 'answering';
+    nivelesRepCount = 0;
+
+    document.getElementById('nivelesPlayHint').textContent = 'escuchando…';
+    document.getElementById('nivelesRepeatBtn').disabled = false;
+    document.getElementById('nivelesRevealPanel').classList.remove('visible');
+    document.querySelectorAll('#nivelesBtnGrid .deg-btn').forEach(b => {
+        b.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
+        b.disabled = false;
+    });
+    document.getElementById('nivelesRound').textContent = '#' + nivelesRoundNum;
+    const btn = document.getElementById('nivelesPlayBtn');
+    btn.classList.add('ringing'); setTimeout(() => btn.classList.remove('ringing'), 400);
+
+    const delay = playMode === 'arp' ? ARP_DELAYS[0] : 0;
+    playDegreeContext(nivelesCurrentDeg, delay);
+    setTimeout(() => {
+        if (nivelesPhase === 'answering')
+            document.getElementById('nivelesPlayHint').textContent = '¿qué grado tonal es?';
+    }, 1800);
+}
+
+function repeatNiveles() {
+    if (!nivelesCurrentDeg) return;
+    nivelesRepCount++;
+    const delay = playMode === 'arp' ? ARP_DELAYS[nivelesRepCount % ARP_DELAYS.length] : 0;
+    playDegreeContext(nivelesCurrentDeg, delay);
+    if (playMode === 'arp') {
+        const looped = (nivelesRepCount % ARP_DELAYS.length) === 0;
+        const tempo = TEMPO_NAMES[nivelesRepCount % TEMPO_NAMES.length];
+        document.getElementById('nivelesPlayHint').textContent = looped ? 'arpegiado · allegro ↺' : `arpegiado · ${tempo}`;
+    }
+}
+
+function answerNiveles(num) {
+    if (nivelesPhase !== 'answering') return;
+    nivelesPhase = 'done';
+    const correct = num === nivelesCurrentDeg.num;
+    nivelesScores[1]++;
+    if (correct) nivelesScores[0]++;
+    registrarDetalle('grados', nivelesCurrentDeg.num, correct);
+
+    nivelesHistory.push(correct);
+    if (nivelesHistory.length > 10) nivelesHistory.shift();
+
+    document.querySelectorAll('#nivelesBtnGrid .deg-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.deg === nivelesCurrentDeg.num && !correct) b.classList.add('reveal-correct');
+    });
+    document.querySelector(`#nivelesBtnGrid .deg-btn[data-deg="${num}"]`)
+        .classList.add(correct ? 'selected-correct' : 'selected-wrong');
+
+    const d = nivelesCurrentDeg;
+    if (!correct) {
+        const answeredDeg = DEGREES.find(x => x.num === num);
+        const tip = `Era ${d.num} — ${d.chordName}: ${d.feeling}` +
+            (answeredDeg ? ` (confundiste con ${answeredDeg.num} — ${answeredDeg.chordName}: ${answeredDeg.feeling})` : '');
+        showFeedbackTip('nivelesFeedback', tip);
+    }
+    document.getElementById('nivelesRevTitle').textContent   = `${d.num} — ${d.chordName}`;
+    document.getElementById('nivelesRevQuality').textContent = d.subfuncionLabel;
+    document.getElementById('nivelesRevQuality').className   = 'deg-rev-quality ' + (d.quality === 'mayor' ? 'dq-mayor' : 'dq-menor');
+    document.getElementById('nivelesRevFeeling').textContent = d.feeling;
+    document.getElementById('nivelesRevDesc').textContent    = d.desc;
+    document.getElementById('nivelesRevMov').textContent     = `va a: ${d.movNatural.join(' → ')} — ${d.movNaturalDesc}`;
+    document.getElementById('nivelesRevealPanel').classList.add('visible');
+    document.getElementById('nivelesScore').textContent = `${nivelesScores[0]}/${nivelesScores[1]}`;
+
+    const recentOk  = nivelesHistory.filter(Boolean).length;
+    const recentTot = nivelesHistory.length;
+    const recentPct = recentTot > 0 ? Math.round(recentOk / recentTot * 100) : 0;
+    document.getElementById('nivelesRecent').textContent =
+        recentTot < 10 ? `${recentTot}/10` : `${recentPct}%`;
+
+    guardarRonda('progresivo', nivelesScores[0], nivelesScores[1]);
+    updateProgresivoProg();
+    renderHistorial('progresivo');
+    checkNivelUnlock();
+}
+
+function checkNivelUnlock() {
+    if (progNivelActual >= 4 || nivelesHistory.length < 10) return;
+    const pct = nivelesHistory.filter(Boolean).length / nivelesHistory.length;
+    if (pct >= 0.75 && progNivelActual >= progNivelMax) {
+        progNivelMax = progNivelActual + 1;
+        saveProgNivel(progNivelMax);
+        showNivelUnlock(progNivelMax);
+        renderNivelInfo();
+        document.querySelectorAll('.nivel-btn').forEach((b, i) => {
+            const num = i + 1;
+            b.classList.toggle('n-locked', num > progNivelMax);
+            b.classList.toggle('n-unlocked', num <= progNivelMax && num !== progNivelActual);
+        });
+    }
+}
+
+function showNivelUnlock(nivel) {
+    const banner = document.getElementById('nivelesUnlockBanner');
+    if (!banner) return;
+    const niv = PROG_NIVELES[nivel - 1];
+    banner.textContent = `¡Nivel ${nivel} desbloqueado! — ${niv.desc}`;
+    banner.style.display = 'block';
+    setTimeout(() => { banner.style.display = 'none'; }, 5000);
+}
+
+function updateProgresivoProg() {
+    const nivel = PROG_NIVELES[progNivelActual - 1];
+    const items  = nivel.grados;
+    const labels = Object.fromEntries(DEGREES.filter(d => items.includes(d.num)).map(d => [d.num, `${d.num} — ${d.chordName}`]));
+    const tips   = {
+        I:   'Tónica principal — el hogar. Reposo absoluto.',
+        II:  'Subdominante modal — movimiento suave. Va al V o al IV.',
+        III: 'Mediador — puente ambiguo. Comparte notas con I y V.',
+        IV:  'Subdominante tonal — salida cálida. Va al V (tensión) o al I (amén).',
+        V:   'Dominante tonal — máxima tensión. El Si (sensible) pide resolver al Do.',
+        VI:  'Tónica relativa — reposo oscuro. El lado melancólico del mayor.',
+    };
+    renderAdapPanel('grados', items, labels, tips, 'nivelesProgBars', 'nivelesFocusHint', 3);
+}
+
 function toggleGradosRef() {
     const grid = document.getElementById('degRefGrid');
     const btn  = document.getElementById('toggleRefBtn');
@@ -949,18 +1278,19 @@ function toggleProgRef() {
 }
 
 function switchGradosMode(mode) {
-    const sections = ['grados','progresiones','funciones','cadencias','modalidad','completar'];
-    const btnIds   = ['gmGrados','gmProg','gmFunc','gmCad','gmModal','gmComp'];
+    const sections = ['grados','progresivos','progresiones','funciones','cadencias','modalidad','completar'];
+    const btnIds   = ['gmGrados','gmNiveles','gmProg','gmFunc','gmCad','gmModal','gmComp'];
     sections.forEach((s, i) => {
         document.getElementById(s + 'Section').style.display = mode === s ? '' : 'none';
         document.getElementById(btnIds[i]).classList.toggle('gm-active', mode === s);
     });
-    if (mode === 'grados')       updateGradosProgress();
+    if (mode === 'grados')      updateGradosProgress();
+    if (mode === 'progresivos') updateProgresivoProg();
     if (mode === 'progresiones') updateProgProgress();
-    if (mode === 'funciones')    updateFuncionProgress();
-    if (mode === 'cadencias')    updateCadenciaProgress();
-    if (mode === 'modalidad')    updateModalProgress();
-    if (mode === 'completar')    updateCompletarProgress();
+    if (mode === 'funciones')   updateFuncionProgress();
+    if (mode === 'cadencias')   updateCadenciaProgress();
+    if (mode === 'modalidad')   updateModalProgress();
+    if (mode === 'completar')   updateCompletarProgress();
 }
 
 function buildProgRef() {
@@ -1661,7 +1991,7 @@ function renderHistorial(modulo) {
 }
 
 function initHistoriales() {
-    ['inversiones','grados','progresiones','dictado','posicion','intervalos',
+    ['inversiones','grados','progresivo','progresiones','dictado','posicion','intervalos',
      'funciones','cadencias','modalidad','completar'].forEach(m => {
         renderHistorial(m);
         renderRacha(m);
@@ -2744,6 +3074,7 @@ document.addEventListener('visibilitychange', () => {
 initVolSlider();
 buildTiles();
 buildDegreeRef();
+buildFuncionTable();
 buildProgBtns();
 initCustomProgs();   // merge custom progs into PROGRESSIONS antes de buildProgRef
 buildProgRef();
@@ -2752,10 +3083,12 @@ initDictado();
 initHistoriales();
 initCseq();
 initIntervalos();
+initNivelesBtns();
 // Cargar paneles adaptativos con datos existentes
 updateInvProgress();
 updatePosProgress();
 updateGradosProgress();
+updateProgresivoProg();
 updateProgProgress();
 updateFuncionProgress();
 updateCadenciaProgress();

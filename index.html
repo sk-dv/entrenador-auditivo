@@ -502,12 +502,13 @@
 
             <div class="tab-intro">
                 <div class="tab-intro-title">Grados, cadencias y armonía funcional</div>
-                <div class="tab-intro-desc">Seis modos de entrenamiento. <strong>Grados</strong>: identificá el grado tonal por su sonido. <strong>Funciones</strong>: ¿es tónica, subdominante o dominante? <strong>Cadencias</strong>: reconocé el tipo de cierre. <strong>Tonal/Modal</strong>: ¿el movimiento resuelve o flota? <strong>Progresiones</strong>: identificá acorde a acorde. <strong>Completar</strong>: ¿qué acorde sigue?</div>
+                <div class="tab-intro-desc"><strong>Progresivo</strong>: empezá con I vs. V y desbloqueá grados de a uno — el camino pedagógico. <strong>Grados</strong>: todos los grados a la vez. <strong>Funciones</strong>: Tónica / Subdominante / Dominante. <strong>Cadencias</strong>, <strong>Tonal/Modal</strong>, <strong>Progresiones</strong>, <strong>Completar</strong>.</div>
             </div>
 
             <!-- Sub-mode selector -->
             <div class="grados-mode-selector">
-                <button class="gm-btn gm-active" id="gmGrados" onclick="switchGradosMode('grados')">Grados</button>
+                <button class="gm-btn gm-active" id="gmNiveles" onclick="switchGradosMode('progresivos')">Progresivo</button>
+                <button class="gm-btn" id="gmGrados" onclick="switchGradosMode('grados')">Grados</button>
                 <button class="gm-btn" id="gmFunc"   onclick="switchGradosMode('funciones')">Funciones</button>
                 <button class="gm-btn" id="gmCad"    onclick="switchGradosMode('cadencias')">Cadencias</button>
                 <button class="gm-btn" id="gmModal"  onclick="switchGradosMode('modalidad')">Tonal / Modal</button>
@@ -515,8 +516,88 @@
                 <button class="gm-btn" id="gmComp"   onclick="switchGradosMode('completar')">Completar</button>
             </div>
 
+            <!-- ── PROGRESIVOS SECTION ── -->
+            <div id="progresivosSection">
+
+                <div class="nivel-selector">
+                    <button class="nivel-btn n-active" id="nivelesBtn1" onclick="switchNivel(1)">
+                        <span class="nb-num">Nivel 1</span>
+                        <span class="nb-desc">I vs. V</span>
+                    </button>
+                    <button class="nivel-btn n-locked" id="nivelesBtn2" onclick="switchNivel(2)">
+                        <span class="nb-num">Nivel 2</span>
+                        <span class="nb-desc">I · IV · V</span>
+                    </button>
+                    <button class="nivel-btn n-locked" id="nivelesBtn3" onclick="switchNivel(3)">
+                        <span class="nb-num">Nivel 3</span>
+                        <span class="nb-desc">+ VI</span>
+                    </button>
+                    <button class="nivel-btn n-locked" id="nivelesBtn4" onclick="switchNivel(4)">
+                        <span class="nb-num">Nivel 4</span>
+                        <span class="nb-desc">todos</span>
+                    </button>
+                </div>
+
+                <div id="nivelesInfo"></div>
+                <div class="nivel-unlock-banner" id="nivelesUnlockBanner" style="display:none"></div>
+
+                <div class="adap-panel">
+                    <span class="sec-label" style="margin-bottom:0.6rem">Progreso adaptativo — nivel actual</span>
+                    <div id="nivelesProgBars"></div>
+                    <div class="adap-focus" id="nivelesFocusHint">Presioná ▶ para empezar.</div>
+                </div>
+
+                <div class="quiz-area">
+                    <div class="play-zone">
+                        <button class="big-play-btn" id="nivelesPlayBtn" onclick="startNivelesRound()">▶</button>
+                        <div class="play-hint" id="nivelesPlayHint">toca para escuchar un grado tonal</div>
+                        <div class="deg-context-hint">
+                            escucharás: <strong>Do Mayor</strong> (contexto) → <strong>acorde misterio</strong>
+                        </div>
+                        <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                            <span class="mode-label">reproducción:</span>
+                            <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                            <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                        </div>
+                        <button class="repeat-btn" id="nivelesRepeatBtn" onclick="repeatNiveles()" disabled>↺ repetir</button>
+                    </div>
+
+                    <div class="deg-btn-grid" id="nivelesBtnGrid"></div>
+                    <div class="feedback-tip" id="nivelesFeedback"></div>
+
+                    <div class="reveal-panel" id="nivelesRevealPanel">
+                        <div class="rev-name" id="nivelesRevTitle">—</div>
+                        <span class="deg-rev-quality" id="nivelesRevQuality">—</span>
+                        <div class="rev-sub" id="nivelesRevFeeling">—</div>
+                        <div class="deg-rev-desc" id="nivelesRevDesc">—</div>
+                        <div class="deg-rev-mov" id="nivelesRevMov">—</div>
+                        <button class="next-btn" onclick="startNivelesRound()">→ siguiente grado</button>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-part">
+                        <div class="score-label">Ronda</div>
+                        <div class="score-val" id="nivelesRound">—</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Aciertos</div>
+                        <div class="score-val" id="nivelesScore">0/0</div>
+                    </div>
+                    <div class="score-divider"></div>
+                    <div class="score-part">
+                        <div class="score-label">Últimas 10</div>
+                        <div class="score-val" id="nivelesRecent">—</div>
+                    </div>
+                </div>
+                <div class="hist-bar" id="hist-progresivo"></div>
+                <div class="racha-bar" id="racha-progresivo"></div>
+
+            </div><!-- end #progresivosSection -->
+
             <!-- ── GRADOS SECTION ── -->
-            <div id="gradosSection">
+            <div id="gradosSection" style="display:none">
 
                 <div class="adap-panel" id="gradosProgressPanel">
                     <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por grado tonal</span>
@@ -525,6 +606,12 @@
                 </div>
 
                 <div class="ref-toggle-row">
+                    <span class="sec-label" style="margin:0">Tabla de funciones armónicas</span>
+                    <button class="ref-toggle-btn" id="toggleTablaBtn" onclick="toggleTablaFunciones()">ver tabla de funciones ↓</button>
+                </div>
+                <div class="tabla-funciones-wrap ref-hidden" id="tablaFuncionesGrid"></div>
+
+                <div class="ref-toggle-row" style="margin-top:0.75rem">
                     <span class="sec-label" style="margin:0">Los 6 grados diatónicos de Do Mayor</span>
                     <button class="ref-toggle-btn" id="toggleRefBtn" onclick="toggleGradosRef()">ver referencia ↓</button>
                 </div>
@@ -554,6 +641,7 @@
                         <div class="rev-sub" id="degRevFeeling">—</div>
                         <div class="deg-rev-desc" id="degRevDesc">—</div>
                         <div class="deg-rev-prog" id="degRevProg">—</div>
+                        <div class="deg-rev-mov" id="degRevMov">—</div>
                         <button class="next-btn" onclick="startDegreeRound()">→ siguiente grado</button>
                     </div>
                 </div>
@@ -681,9 +769,9 @@
                     </div>
 
                     <div class="func-ref-row">
-                        <span class="func-ref-chip func-chip-tonica">Tónica: I · III · VI</span>
-                        <span class="func-ref-chip func-chip-subdominante">Subdominante: II · IV</span>
-                        <span class="func-ref-chip func-chip-dominante">Dominante: V</span>
+                        <span class="func-ref-chip func-chip-tonica">Tónica: I · III · VI<small style="display:block;opacity:0.7;font-size:0.55rem">Principal · Mediador · Relativa</small></span>
+                        <span class="func-ref-chip func-chip-subdominante">Subdominante: II · IV<small style="display:block;opacity:0.7;font-size:0.55rem">Modal (suave) · Tonal (fuerte)</small></span>
+                        <span class="func-ref-chip func-chip-dominante">Dominante: V<small style="display:block;opacity:0.7;font-size:0.55rem">Tonal — máxima tensión</small></span>
                     </div>
 
                     <div class="func-btn-grid">

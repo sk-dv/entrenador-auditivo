@@ -3265,3 +3265,191 @@ header h1 {
     -webkit-overflow-scrolling: touch;
     padding: 1.5rem 1.25rem 2rem;
 }
+/* ═══════════════════════════════════════════════════════════════
+   PROGRESIVO — NIVELES
+═══════════════════════════════════════════════════════════════ */
+    .nivel-selector {
+        display: flex;
+        gap: 0.45rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .nivel-btn {
+        flex: 1;
+        padding: 0.7rem 0.4rem;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        font-family: 'IBM Plex Mono', monospace;
+        cursor: pointer;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.18rem;
+        align-items: center;
+        transition: background 0.15s, color 0.15s, opacity 0.15s;
+    }
+
+    .nivel-btn .nb-num {
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+    }
+
+    .nivel-btn .nb-desc {
+        font-size: 0.56rem;
+        letter-spacing: 0.04em;
+        opacity: 0.65;
+    }
+
+    .nivel-btn.n-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .nivel-btn.n-active .nb-desc {
+        opacity: 0.7;
+    }
+
+    .nivel-btn.n-unlocked:not(.n-active):hover {
+        background: rgba(26,23,20,0.06);
+    }
+
+    .nivel-btn.n-locked {
+        opacity: 0.32;
+        cursor: not-allowed;
+        border-style: dashed;
+    }
+
+    .nivel-info-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.75rem 1rem;
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        margin-bottom: 1.5rem;
+        font-size: 0.68rem;
+    }
+
+    .nivel-info-label {
+        font-weight: 500;
+    }
+
+    .nivel-info-hint {
+        color: var(--ink-mid);
+        font-style: italic;
+    }
+
+    .nivel-info-unlock {
+        font-size: 0.6rem;
+        color: var(--inv2-acc);
+        border-top: 1px solid var(--rule);
+        padding-top: 0.4rem;
+        margin-top: 0.05rem;
+    }
+
+    .nivel-unlock-banner {
+        background: var(--correct);
+        color: white;
+        padding: 0.8rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        animation: fadeUp 0.3s ease;
+    }
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLA DE FUNCIONES ARMÓNICAS
+═══════════════════════════════════════════════════════════════ */
+    .tabla-funciones-wrap {
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--rule);
+    }
+
+    .tabla-funciones {
+        min-width: 480px;
+        border-collapse: collapse;
+        font-size: 0.6rem;
+        width: 100%;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .tf-header {
+        font-weight: 600;
+        text-align: center;
+        padding: 0.4rem 0.25rem;
+        border: 1px solid var(--rule);
+        letter-spacing: 0.1em;
+        background: var(--paper);
+        font-size: 0.68rem;
+    }
+
+    .tf-mode-label {
+        font-weight: 600;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--rule);
+        font-size: 0.68rem;
+        white-space: nowrap;
+        background: var(--paper);
+        vertical-align: middle;
+    }
+
+    .tf-cell {
+        border: 1px solid;
+        padding: 0.45rem 0.3rem;
+        text-align: center;
+        line-height: 1.35;
+        vertical-align: middle;
+    }
+
+    .tf-deg {
+        font-weight: 600;
+        font-size: 0.7rem;
+        margin-bottom: 0.12rem;
+    }
+
+    .tf-func {
+        font-size: 0.58rem;
+        font-weight: 500;
+    }
+
+    .tf-sub {
+        font-size: 0.54rem;
+        opacity: 0.7;
+    }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOVIMIENTOS NATURALES — reveal panel
+═══════════════════════════════════════════════════════════════ */
+    .deg-rev-mov {
+        font-size: 0.62rem;
+        color: rgba(255,255,255,0.42);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 0.65rem;
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBFUNCION en tarjetas de referencia
+═══════════════════════════════════════════════════════════════ */
+    .deg-subfuncion-chip {
+        display: inline-block;
+        font-size: 0.57rem;
+        padding: 0.1rem 0.45rem;
+        border: 1px solid currentColor;
+        opacity: 0.7;
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.05em;
+        color: var(--deg-col, var(--ink));
+    }
+
+    .deg-mov-hint {
+        font-size: 0.58rem;
+        color: var(--ink-mid);
+        margin-top: 0.35rem;
+        font-style: italic;
+        border-top: 1px solid var(--rule);
+        padding-top: 0.35rem;
+    }
