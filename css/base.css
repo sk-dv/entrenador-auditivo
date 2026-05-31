@@ -1,4 +1,4 @@
-    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap');
 
     *,
     *::before,
@@ -20,7 +20,7 @@
         --inv2-acc: #e07a3a;
         --correct: #4caf7d;
         --wrong: #e05a4a;
-        --font-body: 'Nunito Sans', sans-serif;
+        --font-body: 'Inter', sans-serif;
         --font-display: 'Fraunces', serif;
     }
 

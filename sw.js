@@ -1,5 +1,5 @@
 // Incrementar este número con cada deploy para forzar actualización del caché
-const CACHE = 'oido-v3';
+const CACHE = 'oido-v4';
 
 const APP_SHELL = [
     '/',
@@ -11,6 +11,7 @@ const APP_SHELL = [
     '/css/grados.css',
     '/css/armonia.css',
     '/css/dictado-intervalos.css',
+    '/css/editorial.css',
     // JS modular
     '/js/audio.js',
     '/js/acordes-explorer.js',
@@ -37,6 +38,9 @@ const APP_SHELL = [
     '/partials/modal-acorde.html',
     '/partials/modal-analisis.html',
     '/partials/pwa-banner.html',
+    '/icons/icon-192.png',
+    '/icons/icon-512.png',
+    '/icons/apple-touch-icon.png',
     '/firebase.js',
     '/firebase-config.js',
     '/manifest.json',

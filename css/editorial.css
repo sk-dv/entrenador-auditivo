@@ -1,0 +1,81 @@
+/* ════════════════════════════════════════════════════════════
+   CAPA EDITORIAL — minimalismo: menos líneas, más aire.
+   Se carga al final; sólo afina superficies de CONTENEDOR
+   (no toca botones ni sus contornos de affordance).
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Contenedores: marco grueso de tinta → hairline beige ── */
+.tab-intro,
+.color-grid,
+.explorer-area,
+.ref-grid,
+.steps-row,
+.quiz-area,
+.score-bar,
+.deg-ref-grid,
+.practicar-mode-selector,
+.dict-config-area,
+.custom-builder-zone {
+    border: 1px solid var(--rule);
+}
+
+/* Divisores internos de las grids → beige suave (no tinta) */
+.color-grid > *,
+.ref-grid > *,
+.steps-row > *,
+.deg-ref-grid > * {
+    border-color: var(--rule) !important;
+}
+
+/* ── Aire: separación entre secciones ── */
+.sec-label {
+    display: block;
+    margin-top: 3rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.24em;
+    color: var(--ink-faint);
+}
+/* La primera etiqueta de cada panel no necesita el margen grande */
+.tab-panel > .sec-label:first-of-type {
+    margin-top: 0.75rem;
+}
+
+/* Más respiro dentro de las tarjetas */
+.color-card { padding: 1.5rem 1.35rem; }
+.ref-card   { padding: 1.25rem 1.2rem; }
+.step-block { padding: 1.15rem 1.15rem; }
+
+/* Contenedores con un poco más de aire alrededor */
+.color-grid,
+.steps-row,
+.ref-grid,
+.explorer-area,
+.quiz-area {
+    margin-bottom: 2.5rem;
+}
+
+/* ── Tipografía editorial: títulos con más presencia ── */
+.cc-name,
+.dd-name,
+.rev-name,
+.am-title {
+    letter-spacing: -0.01em;
+}
+header h1 {
+    letter-spacing: -0.015em;
+}
+
+/* Etiquetas/tags un punto más discretas (minimal) */
+.cc-tag,
+.ct-type-badge,
+.step-circle {
+    font-weight: 500;
+}
+
+/* Cuerpo de texto: medida cómoda de lectura */
+.cc-desc,
+.cc-insight,
+.s-desc {
+    line-height: 1.7;
+}
