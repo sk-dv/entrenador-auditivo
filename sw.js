@@ -1,11 +1,42 @@
 // Incrementar este número con cada deploy para forzar actualización del caché
-const CACHE = 'oido-v1';
+const CACHE = 'oido-v3';
 
 const APP_SHELL = [
     '/',
     '/index.html',
-    '/app.js',
-    '/style.css',
+    // CSS modular
+    '/css/base.css',
+    '/css/components.css',
+    '/css/quiz.css',
+    '/css/grados.css',
+    '/css/armonia.css',
+    '/css/dictado-intervalos.css',
+    // JS modular
+    '/js/audio.js',
+    '/js/acordes-explorer.js',
+    '/js/quiz-inversiones.js',
+    '/js/datos-armonia.js',
+    '/js/progresivo.js',
+    '/js/custom-progs.js',
+    '/js/quiz-armonia.js',
+    '/js/progreso.js',
+    '/js/dictado.js',
+    '/js/analisis-posicion.js',
+    '/js/secuencias.js',
+    '/js/intervalos.js',
+    '/js/init.js',
+    '/js/ui-handlers.js',
+    '/js/bootstrap.js',
+    // Fragmentos HTML
+    '/partials/tab-aprender.html',
+    '/partials/tab-explorar.html',
+    '/partials/tab-practicar.html',
+    '/partials/tab-grados.html',
+    '/partials/tab-dictado.html',
+    '/partials/tab-intervalos.html',
+    '/partials/modal-acorde.html',
+    '/partials/modal-analisis.html',
+    '/partials/pwa-banner.html',
     '/firebase.js',
     '/firebase-config.js',
     '/manifest.json',

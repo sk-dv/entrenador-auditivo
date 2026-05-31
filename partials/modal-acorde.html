@@ -1,0 +1,36 @@
+<div class="chord-modal-bg" id="chordModalBg" onclick="closeDrawer()">
+    <div class="chord-modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeDrawer()">✕</button>
+        <div class="dd-name" id="ddName">—</div>
+        <div class="dd-flavour" id="ddFlavour">—</div>
+        <div class="dd-grid">
+            <div class="dd-box">
+                <div class="dd-box-label">Posición</div>
+                <div class="dd-box-val" id="ddType">—</div>
+            </div>
+            <div class="dd-box">
+                <div class="dd-box-label">Color</div>
+                <div class="dd-box-val" id="ddColor">—</div>
+            </div>
+            <div class="dd-box">
+                <div class="dd-box-label">Nota en el bajo</div>
+                <div class="dd-box-val" id="ddBass">—</div>
+            </div>
+            <div class="dd-box">
+                <div class="dd-box-label">Notas del acorde</div>
+                <div class="dd-box-val" id="ddNotes">—</div>
+            </div>
+        </div>
+        <table class="dd-int-table">
+            <thead>
+                <tr>
+                    <th>Movimiento</th>
+                    <th>Nota destino</th>
+                    <th>Intervalo</th>
+                    <th>Semitonos</th>
+                </tr>
+            </thead>
+            <tbody id="ddIntBody"></tbody>
+        </table>
+    </div>
+</div>

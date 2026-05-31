@@ -1,0 +1,510 @@
+    /* ── GRADOS — REFERENCIA ── */
+    .ref-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .ref-toggle-btn {
+        background: transparent;
+        border: 1px solid var(--rule);
+        color: var(--ink-mid);
+        font-family: var(--font-body);
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+        padding: 4px 12px;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: border-color 0.12s, color 0.12s;
+    }
+    .ref-toggle-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+    .ref-hidden { display: none !important; }
+
+    .deg-ref-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .deg-card {
+        padding: 1.1rem 0.9rem;
+        border-right: 1px solid var(--ink);
+        border-left: 3px solid var(--deg-col, var(--ink));
+        background: var(--paper);
+    }
+
+    .deg-card:last-child {
+        border-right: none;
+    }
+
+    .deg-num-badge {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+
+    .deg-chord-name {
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        color: var(--ink);
+        margin-bottom: 0.2rem;
+    }
+
+    .deg-quality-tag {
+        display: inline-block;
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 2px;
+        margin-bottom: 0.45rem;
+        font-weight: 500;
+    }
+
+    .dq-mayor {
+        background: rgba(76, 175, 125, 0.12);
+        color: #3a9966;
+        border: 1px solid rgba(76, 175, 125, 0.3);
+    }
+
+    .dq-menor {
+        background: rgba(100, 80, 160, 0.10);
+        color: #7060b8;
+        border: 1px solid rgba(100, 80, 160, 0.25);
+    }
+
+    .deg-fn-name {
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        color: var(--ink-mid);
+        text-transform: uppercase;
+        margin-bottom: 0.35rem;
+    }
+
+    .deg-feeling {
+        font-family: var(--font-display);
+        font-size: 0.68rem;
+        font-style: italic;
+        color: var(--ink);
+        margin-bottom: 0.4rem;
+        line-height: 1.4;
+    }
+
+    .deg-notes-row {
+        font-size: 0.6rem;
+        color: var(--ink-faint);
+        margin-bottom: 0.35rem;
+        letter-spacing: 0.02em;
+    }
+
+    .deg-prog-hint {
+        font-size: 0.58rem;
+        color: var(--ink-faint);
+        line-height: 1.5;
+        border-top: 1px solid var(--rule);
+        padding-top: 0.4rem;
+        margin-top: 0.4rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .deg-ref-song {
+        font-size: 0.56rem;
+        color: var(--ink-faint);
+        font-style: italic;
+        line-height: 1.5;
+    }
+
+    /* ── GRADOS — CONTEXTO Y BOTONES ── */
+    .deg-context-hint {
+        font-size: 0.65rem;
+        color: var(--ink-mid);
+        text-align: center;
+        letter-spacing: 0.04em;
+    }
+
+    .deg-context-hint strong {
+        color: var(--ink);
+    }
+
+    .deg-btn-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.65rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .prog-chord-previews {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+        margin-bottom: 0.25rem;
+        justify-content: center;
+    }
+
+    .prog-chord-preview-btn {
+        padding: 0.3rem 0.8rem;
+        border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+        border-radius: 3px;
+        background: transparent;
+        color: color-mix(in srgb, var(--ink) 60%, transparent);
+        font-family: var(--font-body);
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .prog-chord-preview-btn:hover {
+        background: color-mix(in srgb, var(--ink) 8%, transparent);
+        color: var(--ink);
+        border-color: var(--ink);
+    }
+
+    .deg-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.9rem 0.5rem;
+        border: 1.5px solid var(--ink);
+        border-radius: 3px;
+        background: transparent;
+        color: var(--ink);
+        font-family: var(--font-body);
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+        text-align: center;
+        width: 100%;
+    }
+
+    .deg-btn:hover {
+        background: var(--deg-color, var(--ink));
+        border-color: var(--deg-color, var(--ink));
+        color: white;
+    }
+
+    .deg-btn-num {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .deg-btn-chord {
+        font-size: 0.58rem;
+        letter-spacing: 0.03em;
+        opacity: 0.8;
+    }
+
+    .deg-btn-quality {
+        font-size: 0.52rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 1px 5px;
+        border-radius: 2px;
+    }
+
+    .deg-btn.selected-correct {
+        background: var(--correct);
+        border-color: var(--correct);
+        color: white;
+    }
+
+    .deg-btn.selected-wrong {
+        background: var(--wrong);
+        border-color: var(--wrong);
+        color: white;
+    }
+
+    .deg-btn.reveal-correct {
+        background: rgba(76, 175, 125, 0.12);
+        border-color: var(--correct);
+        color: var(--correct);
+    }
+
+    /* ── GRADOS — REVEAL PANEL ── */
+    .deg-rev-quality {
+        display: inline-block;
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 2px;
+        margin-bottom: 0.65rem;
+        font-weight: 500;
+    }
+
+    .deg-rev-quality.dq-mayor {
+        background: rgba(76, 175, 125, 0.2);
+        color: #6de0a8;
+        border: 1px solid rgba(76, 175, 125, 0.3);
+    }
+
+    .deg-rev-quality.dq-menor {
+        background: rgba(160, 140, 210, 0.2);
+        color: #bba8e8;
+        border: 1px solid rgba(160, 140, 210, 0.3);
+    }
+
+    .deg-rev-desc {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.65;
+        margin-bottom: 0.65rem;
+    }
+
+    .deg-rev-prog {
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.45);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 0.65rem;
+        font-style: italic;
+    }
+
+    /* ── PRACTICAR MODE SELECTOR ── */
+    .practicar-mode-selector {
+        display: flex;
+        gap: 0;
+        border: 1.5px solid var(--ink);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+    }
+
+    .pm-btn {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        background: transparent;
+        border: none;
+        border-right: 1px solid var(--ink);
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-mid);
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pm-btn:last-child { border-right: none; }
+
+    .pm-btn.pm-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .pm-btn:not(.pm-active):hover {
+        background: rgba(26,23,20,0.06);
+        color: var(--ink);
+    }
+
+    /* ── POSICIÓN / SECUENCIA — QUALITY FILTER ── */
+    .pos-quality-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .pos-quality-btn, .seq-quality-btn {
+        font-family: var(--font-body);
+        font-size: 0.72rem;
+        padding: 0.38rem 0.85rem;
+        border: 1px solid var(--ink);
+        background: var(--bg);
+        color: var(--ink-mid);
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pos-quality-btn.pq-active,
+    .seq-quality-btn.sq-active {
+        background: var(--ink);
+        color: var(--bg);
+    }
+
+    .pos-quality-btn:not(.pq-active):hover,
+    .seq-quality-btn:not(.sq-active):hover {
+        background: rgba(26,23,20,0.06);
+        color: var(--ink);
+    }
+
+    /* ── PANEL DE PROGRESO ADAPTATIVO (todas las secciones) ── */
+    .adap-panel {
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 1rem 1.1rem 0.9rem;
+        margin-bottom: 1.5rem;
+        background: var(--paper);
+    }
+
+    .adap-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.45rem;
+        font-family: var(--font-body);
+        font-size: 0.72rem;
+    }
+
+    .adap-label {
+        min-width: 7rem;
+        color: var(--ink-mid);
+    }
+
+    .adap-track {
+        flex: 1;
+        height: 5px;
+        background: var(--rule);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .adap-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.4s ease;
+    }
+
+    .adap-pct {
+        min-width: 2.5rem;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    .adap-count {
+        color: var(--ink-faint);
+        font-size: 0.65rem;
+        min-width: 3.5rem;
+    }
+
+    .adap-nodata {
+        color: var(--ink-faint);
+        font-size: 0.68rem;
+        font-style: italic;
+    }
+
+    .adap-focus {
+        margin-top: 0.75rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid var(--rule);
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        color: var(--ink-mid);
+        line-height: 1.5;
+    }
+
+    .adap-focus strong { color: var(--ink); }
+
+    /* ── SECUENCIA — SLOTS ── */
+    .seq-slots-area {
+        margin: 0 0 1.5rem;
+    }
+
+    .seq-slots-hint {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-bottom: 0.65rem;
+        text-align: center;
+    }
+
+    .seq-slots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        justify-content: center;
+    }
+
+    .seq-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 4.2rem;
+        padding: 0.4rem 0.25rem 0.35rem;
+        border: 1.5px solid var(--rule);
+        border-radius: 3px;
+        background: var(--bg);
+        opacity: 0.55;
+        transition: all 0.2s;
+        cursor: default;
+    }
+
+    .seq-slot.seq-active {
+        opacity: 1;
+        border-color: var(--ink);
+        border-width: 2px;
+        background: var(--ink);
+        color: var(--bg);
+        box-shadow: 0 0 0 2px rgba(26,23,20,0.1);
+    }
+
+    .seq-slot.seq-correct {
+        opacity: 1;
+        border-color: var(--correct);
+        background: rgba(76,175,125,0.1);
+        color: var(--correct);
+    }
+
+    .seq-slot.seq-wrong {
+        opacity: 1;
+        border-color: var(--wrong);
+        background: rgba(224,90,74,0.1);
+        color: var(--wrong);
+    }
+
+    .seq-slot-num {
+        font-family: var(--font-body);
+        font-size: 0.58rem;
+        opacity: 0.55;
+        margin-bottom: 0.15rem;
+    }
+
+    .seq-slot-ans {
+        font-family: var(--font-body);
+        font-size: 0.62rem;
+        font-weight: 500;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    /* ── SECUENCIA — REVEAL LIST ── */
+    .seq-reveal-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        margin: 0.75rem 0 1rem;
+        text-align: left;
+        font-size: 0.72rem;
+        font-family: var(--font-body);
+        max-height: 14rem;
+        overflow-y: auto;
+    }
+
+    .seq-reveal-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 2px;
+    }
+
+    .seq-reveal-row.sr-correct { background: rgba(76,175,125,0.1); color: var(--correct); }
+    .seq-reveal-row.sr-wrong   { background: rgba(224,90,74,0.1);  color: var(--wrong); }
+
+    .seq-reveal-num { opacity: 0.5; min-width: 1.2rem; }
+    .seq-reveal-chord { font-style: italic; flex: 1; }
+    .seq-reveal-mark { font-weight: 700; }
+

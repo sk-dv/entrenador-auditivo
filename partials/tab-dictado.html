@@ -1,0 +1,81 @@
+<div class="tab-panel" id="tab-dictado">
+
+    <div class="tab-intro">
+        <div class="tab-intro-title">Dictado isócrono</div>
+        <div class="tab-intro-desc">Elegí una escala (5 notas) y la velocidad. Presioná <strong>▶</strong> — la app toca 10 notas seguidas a intervalos iguales. La primera nota te la regala como referencia. Identificá las 9 restantes usando el teclado. Podés repetir la secuencia tantas veces como necesités.</div>
+    </div>
+
+    <span class="sec-label">Configurar</span>
+    <div class="dict-config-area">
+        <div class="dict-config-row">
+            <span class="filter-label">escala:</span>
+            <button class="dict-set-btn ds-active" onclick="selectDictadoSet('do5',this)">Do Mayor</button>
+            <button class="dict-set-btn" onclick="selectDictadoSet('sol5',this)">Sol Mayor</button>
+            <button class="dict-set-btn" onclick="selectDictadoSet('fa5',this)">Fa Mayor</button>
+            <button class="dict-set-btn" onclick="selectDictadoSet('sib5',this)">Sib Mayor</button>
+            <button class="dict-set-btn" onclick="selectDictadoSet('mib5',this)">Mib Mayor</button>
+            <button class="dict-set-btn" onclick="selectDictadoSet('re5',this)">Re Mayor</button>
+        </div>
+        <div class="dict-config-row">
+            <span class="filter-label">velocidad:</span>
+            <button class="dict-tempo-btn ds-active" onclick="selectDictadoTempo('lento',this)">♩ lento</button>
+            <button class="dict-tempo-btn" onclick="selectDictadoTempo('normal',this)">♩♩ normal</button>
+            <button class="dict-tempo-btn" onclick="selectDictadoTempo('rapido',this)">♩♩♩ rápido</button>
+        </div>
+        <div class="dict-notes-display" id="dictNotesList">
+            notas: <strong>Do · Re · Mi · Fa · Sol</strong>
+            <span class="dict-armadura">sin alteraciones</span>
+        </div>
+    </div>
+
+    <div class="adap-panel" id="dictProgressPanel">
+        <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por nota</span>
+        <div id="dictProgBars"></div>
+        <div class="adap-focus" id="dictFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+    </div>
+
+    <div class="quiz-area">
+        <div class="play-zone">
+            <button class="big-play-btn" id="dictadoPlayBtn" onclick="startDictadoRound()">▶</button>
+            <div class="play-hint" id="dictadoPlayHint">toca para escuchar la secuencia</div>
+            <button class="repeat-btn" id="dictadoRepeatBtn" onclick="repeatDictado()" disabled>↺ repetir secuencia</button>
+        </div>
+
+        <div class="dict-slots-area">
+            <div class="dict-slots-hint">secuencia de 10 notas — identifica cada una en orden</div>
+            <div class="dict-slots" id="dictadoSlots"></div>
+        </div>
+
+        <div class="dict-keyboard-area">
+            <div class="dict-keyboard" id="dictadoKeyboard"></div>
+        </div>
+
+        <div class="feedback-tip" id="dictFeedback"></div>
+
+        <div class="reveal-panel" id="dictadoRevealPanel">
+            <div class="rev-name" id="dictadoRevPercent">—</div>
+            <div class="rev-sub" id="dictadoRevMsg">—</div>
+            <button class="next-btn" onclick="startDictadoRound()">→ nueva secuencia</button>
+        </div>
+    </div>
+
+    <div class="score-bar">
+        <div class="score-part">
+            <div class="score-label">Ronda</div>
+            <div class="score-val" id="dictadoRoundVal">—</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Ronda actual</div>
+            <div class="score-val" id="dictadoScore">—</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Total acumulado</div>
+            <div class="score-val" id="dictadoTotal">0/0</div>
+        </div>
+    </div>
+    <div class="hist-bar" id="hist-dictado"></div>
+    <div class="racha-bar" id="racha-dictado"></div>
+
+</div>

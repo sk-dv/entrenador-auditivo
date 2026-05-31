@@ -1,0 +1,37 @@
+<div class="tab-panel" id="tab-explorar">
+    <div class="tab-intro">
+        <div class="tab-intro-title">Explorador de acordes</div>
+        <div class="tab-intro-desc">Tocá cualquier acorde para escucharlo — los detalles aparecen en un panel abajo sin perderte de lugar en la lista. Usá los filtros para navegar entre los 72 acordes.</div>
+    </div>
+    <div class="explorer-area">
+
+        <div class="filter-row">
+            <span class="filter-label">filtrar:</span>
+            <button class="filter-btn f-active" onclick="setFilter('all',this)">Todos</button>
+            <button class="filter-btn f-fund" onclick="setFilter('fundamental',this)">Fundamental</button>
+            <button class="filter-btn f-inv1" onclick="setFilter('primera',this)">1ª Inversión</button>
+            <button class="filter-btn f-inv2" onclick="setFilter('segunda',this)">2ª Inversión</button>
+            <button class="filter-btn" onclick="setFilter('mayor',this)">Mayor</button>
+            <button class="filter-btn" onclick="setFilter('menor',this)">Menor</button>
+        </div>
+        <div class="filter-row" id="rootFilterRow">
+            <span class="filter-label">raíz:</span>
+            <button class="filter-btn root-filter-btn f-active" onclick="setRootFilter('all',this)">Todas</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Do',this)">Do</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Do#',this)">Do#</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Re',this)">Re</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Mib',this)">Mib</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Mi',this)">Mi</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Fa',this)">Fa</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Fa#',this)">Fa#</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Sol',this)">Sol</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Lab',this)">Lab</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('La',this)">La</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Sib',this)">Sib</button>
+            <button class="filter-btn root-filter-btn" onclick="setRootFilter('Si',this)">Si</button>
+        </div>
+
+        <div class="chord-tiles" id="chordTiles"></div>
+
+    </div><!-- end .explorer-area -->
+</div>

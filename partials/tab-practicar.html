@@ -1,0 +1,259 @@
+<div class="tab-panel" id="tab-practicar">
+
+    <div class="tab-intro">
+        <div class="tab-intro-title">Quiz de inversiones</div>
+        <div class="tab-intro-desc">Elegí el modo. <strong>Quiz completo</strong>: 3 pasos (calidad → posición → intervalos). <strong>Solo posición</strong>: distingue Fundamental / 1ª / 2ª en una secuencia de 10 acordes — podés filtrar por Mayor, menor o ambos.</div>
+    </div>
+
+    <!-- Mode selector -->
+    <div class="practicar-mode-selector">
+        <button class="pm-btn pm-active" id="pmCompleto" onclick="switchPracticarMode('completo')">Quiz completo</button>
+        <button class="pm-btn" id="pmPosicion" onclick="switchPracticarMode('posicion')">Solo posición</button>
+    </div>
+
+    <!-- ── COMPLETO SECTION ── -->
+    <div id="completoSection">
+    <div class="adap-panel" id="invProgressPanel">
+        <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por posición</span>
+        <div id="invProgBars"></div>
+        <div class="adap-focus" id="invFocusHint">Presioná ▶ para empezar — el sistema irá adaptándose.</div>
+    </div>
+    <span class="sec-label">Referencia rápida</span>
+    <div class="ref-grid" style="margin-bottom:1.5rem;">
+        <div class="ref-card">
+            <div class="pos-name"><span class="pos-dot dot-fund"></span>Fundamental</div>
+            <div class="pos-intervals">3ª + 5ª · bajo = raíz</div>
+            <div class="pos-color-fund">estable · reposa</div>
+        </div>
+        <div class="ref-card">
+            <div class="pos-name"><span class="pos-dot dot-inv1"></span>1ª Inversión</div>
+            <div class="pos-intervals">3ª + 6ª · bajo = 3ª</div>
+            <div class="pos-color-inv1">suave · atenúa</div>
+        </div>
+        <div class="ref-card">
+            <div class="pos-name"><span class="pos-dot dot-inv2"></span>2ª Inversión</div>
+            <div class="pos-intervals">4ª + 6ª · bajo = 5ª</div>
+            <div class="pos-color-inv2">tenso · exponencializa</div>
+        </div>
+    </div>
+
+    <div class="quiz-area">
+        <div class="play-zone">
+            <button class="big-play-btn" id="playBtn" onclick="startRound()">▶</button>
+            <div class="play-hint" id="playHint">toca para escuchar un acorde</div>
+            <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                <span class="mode-label">reproducción:</span>
+                <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+            </div>
+            <button class="repeat-btn" id="repeatBtn" onclick="repeatChord()" disabled>↺ repetir</button>
+        </div>
+
+        <div class="quiz-steps">
+            <div class="q-step" id="step1">
+                <div class="q-step-header">
+                    <div class="step-circle-sm" id="sc1">1</div>
+                    <div class="q-step-title">¿Es mayor o menor?</div>
+                </div>
+                <div class="choice-row">
+                    <button class="choice-btn" onclick="answerStep1('mayor')">Mayor</button>
+                    <button class="choice-btn" onclick="answerStep1('menor')">Menor</button>
+                </div>
+            </div>
+
+            <div class="q-step" id="step2">
+                <div class="q-step-header">
+                    <div class="step-circle-sm" id="sc2">2</div>
+                    <div class="q-step-title">¿Qué color tiene?</div>
+                </div>
+                <div class="choice-row">
+                    <button class="choice-btn" onclick="answerStep2('fundamental')">Estable · reposa<br><small
+                            style="font-size:0.6rem;opacity:0.6">Fundamental</small></button>
+                    <button class="choice-btn" onclick="answerStep2('primera')">Suave · fluye<br><small
+                            style="font-size:0.6rem;opacity:0.6">1ª Inversión</small></button>
+                    <button class="choice-btn" onclick="answerStep2('segunda')">Tenso · suspende<br><small
+                            style="font-size:0.6rem;opacity:0.6">2ª Inversión</small></button>
+                </div>
+            </div>
+
+            <div class="q-step" id="step3">
+                <div class="q-step-header">
+                    <div class="step-circle-sm" id="sc3">3</div>
+                    <div class="q-step-title">¿Cuál es la raíz del acorde?</div>
+                </div>
+                <div class="choice-row" id="rootChoiceRow"></div>
+                <div class="root-hint" id="rootHint"></div>
+                <div class="interval-reveal" id="intervalReveal">
+                    <br>
+                    <div class="interval-table">
+                        <div class="int-row">
+                            <div class="int-cell">Nota en bajo</div>
+                            <div class="int-cell highlight" id="iBasNote">—</div>
+                        </div>
+                        <div class="int-row">
+                            <div class="int-cell">2ª nota</div>
+                            <div class="int-cell" id="iMidNote">—</div>
+                        </div>
+                        <div class="int-row">
+                            <div class="int-cell">3ª nota</div>
+                            <div class="int-cell" id="iTopNote">—</div>
+                        </div>
+                        <div class="int-row">
+                            <div class="int-cell">Intervalo 1</div>
+                            <div class="int-cell highlight" id="iInt1">—</div>
+                        </div>
+                        <div class="int-row int-why-row">
+                            <div class="int-cell int-why-label">→ efecto</div>
+                            <div class="int-cell int-why-val" id="iInt1Why"></div>
+                        </div>
+                        <div class="int-row">
+                            <div class="int-cell">Intervalo 2</div>
+                            <div class="int-cell highlight" id="iInt2">—</div>
+                        </div>
+                        <div class="int-row int-why-row">
+                            <div class="int-cell int-why-label">→ efecto</div>
+                            <div class="int-cell int-why-val" id="iInt2Why"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-tip" id="invFeedback"></div>
+
+        <div class="reveal-panel" id="revealPanel">
+            <div class="rev-name" id="revName">—</div>
+            <div class="rev-sub" id="revSub">—</div>
+            <div class="rev-pills" id="revPills"></div>
+            <div class="rev-insight" id="revInsight"></div>
+            <button class="next-btn" onclick="nextRound()">→ siguiente acorde</button>
+        </div>
+    </div>
+
+    <div class="score-bar">
+        <div class="score-part">
+            <div class="score-label">Ronda</div>
+            <div class="score-val" id="scoreRound">—</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Paso 1</div>
+            <div class="score-val" id="s1Score">0/0</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Paso 2</div>
+            <div class="score-val" id="s2Score">0/0</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Paso 3</div>
+            <div class="score-val" id="s3Score">0/0</div>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-part">
+            <div class="score-label">Total</div>
+            <div class="score-val" id="totalScore">0/0</div>
+        </div>
+    </div>
+    <div class="hist-bar" id="hist-inversiones"></div>
+    <div class="racha-bar" id="racha-inversiones"></div>
+    </div><!-- end #completoSection -->
+
+    <!-- ── SOLO POSICIÓN SECTION ── -->
+    <div id="posicionSection" style="display:none">
+
+        <div class="pos-quality-row">
+            <span class="filter-label">calidad:</span>
+            <button class="seq-quality-btn sq-active" onclick="setSeqQuality('ambos',this)">Mayor y menor</button>
+            <button class="seq-quality-btn" onclick="setSeqQuality('mayor',this)">Solo mayor</button>
+            <button class="seq-quality-btn" onclick="setSeqQuality('menor',this)">Solo menor</button>
+        </div>
+
+        <!-- Panel de progreso acumulado -->
+        <div class="adap-panel" id="posProgressPanel">
+            <span class="sec-label" style="margin-bottom:0.6rem">Tu progreso por posición</span>
+            <div id="posProgBars"></div>
+            <div class="adap-focus" id="posFocusHint">Hacé al menos una secuencia para ver recomendaciones.</div>
+        </div>
+
+        <div class="quiz-area">
+            <div class="play-zone">
+                <button class="big-play-btn" id="seqPlayBtn" onclick="startSeqRound()">▶</button>
+                <div class="play-hint" id="seqPlayHint">toca para comenzar la secuencia</div>
+                <div class="mode-row" style="justify-content:center;margin-bottom:0">
+                    <span class="mode-label">reproducción:</span>
+                    <button class="mode-btn mode-btn-simul m-active" onclick="setPlayMode('simul')">■ simultáneo</button>
+                    <button class="mode-btn mode-btn-arp" onclick="setPlayMode('arp')">♩ arpegiado</button>
+                </div>
+                <button class="repeat-btn" id="seqRepeatBtn" onclick="repeatSeq()" disabled>↺ repetir este acorde</button>
+            </div>
+
+            <div class="seq-slots-area">
+                <div class="seq-slots-hint">10 acordes — identificá la posición de cada uno en orden</div>
+                <div class="seq-slots" id="seqSlots"></div>
+            </div>
+
+            <div class="quiz-steps">
+                <div class="q-step active" id="seqStep">
+                    <div class="q-step-header">
+                        <div class="q-step-title" id="seqStepTitle">¿Qué posición es?</div>
+                    </div>
+                    <div class="choice-row">
+                        <button class="choice-btn seq-choice-btn" onclick="answerSeq('fundamental')">Fundamental<br><small style="font-size:0.6rem;opacity:0.6">estable · reposa</small></button>
+                        <button class="choice-btn seq-choice-btn" onclick="answerSeq('primera')">1ª Inversión<br><small style="font-size:0.6rem;opacity:0.6">suave · atenúa</small></button>
+                        <button class="choice-btn seq-choice-btn" onclick="answerSeq('segunda')">2ª Inversión<br><small style="font-size:0.6rem;opacity:0.6">tenso · suspende</small></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-tip" id="posFeedback"></div>
+
+            <div class="reveal-panel" id="seqRevealPanel">
+                <div class="rev-name" id="seqRevScore">—</div>
+                <div class="rev-sub" id="seqRevMsg">—</div>
+                <div class="seq-reveal-list" id="seqRevealList"></div>
+                <button class="next-btn" onclick="startSeqRound()">→ nueva secuencia</button>
+            </div>
+        </div>
+
+        <div class="hist-bar" id="hist-posicion"></div>
+        <div class="racha-bar" id="racha-posicion"></div>
+
+        <!-- ── BANCO DE SECUENCIAS PROPIAS ── -->
+        <div class="custom-progs-area">
+            <span class="sec-label">Agregar secuencia propia al banco</span>
+            <div class="custom-builder-zone">
+                <div class="custom-builder-hint">Elegí la calidad y tocá las posiciones para construir tu secuencia (mín. 2, máx. 10)</div>
+
+                <div class="cseq-quality-row">
+                    <span class="filter-label">calidad:</span>
+                    <button class="cseq-q-btn cq-active" onclick="setCseqQuality('ambos',this)">Mayor y menor</button>
+                    <button class="cseq-q-btn" onclick="setCseqQuality('mayor',this)">Solo mayor</button>
+                    <button class="cseq-q-btn" onclick="setCseqQuality('menor',this)">Solo menor</button>
+                </div>
+
+                <div class="cseq-pos-picker">
+                    <button class="cseq-pos-btn cpb-fund" onclick="cseqAdd('fundamental')">Fundamental</button>
+                    <button class="cseq-pos-btn cpb-inv1" onclick="cseqAdd('primera')">1ª Inversión</button>
+                    <button class="cseq-pos-btn cpb-inv2" onclick="cseqAdd('segunda')">2ª Inversión</button>
+                </div>
+
+                <div class="custom-builder-preview-row">
+                    <div class="custom-builder-preview" id="cseqPreview">—</div>
+                    <span class="custom-prog-count" id="cseqCount">0/10</span>
+                    <button class="custom-undo-btn" onclick="cseqRemoveLast()">↩</button>
+                </div>
+
+                <div class="custom-builder-save-row">
+                    <input type="text" class="custom-prog-name-input" id="cseqName" placeholder="nombre de la secuencia…" maxlength="40" />
+                    <button class="custom-prog-save-btn" id="cseqSaveBtn" onclick="cseqSubmit()" disabled>Guardar</button>
+                </div>
+            </div>
+
+            <div class="custom-prog-list" id="cseqList"></div>
+        </div>
+
+    </div><!-- end #posicionSection -->
+
+</div>
