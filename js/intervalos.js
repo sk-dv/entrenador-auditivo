@@ -239,13 +239,11 @@ function initIntervalos() {
 }
 
 // ─── SAFARI AUDIO RECOVERY ───────────────────────────────────────
-// Safari suspende el AudioContext en segundo plano.
-// Al volver al frente lo reanudamos; si lo cerró, lo limpiamos
-// para que ctx() lo recree en el siguiente uso.
+// Safari suspende el AudioContext en segundo plano. Al volver al frente
+// pedimos al engine que lo reanude. El AC vive ahora dentro de superdough.
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && ac) {
-        if (ac.state === 'suspended') ac.resume();
-        if (ac.state === 'closed') { ac = null; masterOut = null; masterGain = null; }
+    if (document.visibilityState === 'visible' && window.__engine) {
+        window.__engine.resume();
     }
 });
 

@@ -1,5 +1,5 @@
 // Incrementar este número con cada deploy para forzar actualización del caché
-const CACHE = 'oido-v4';
+const CACHE = 'oido-v5';
 
 const APP_SHELL = [
     '/',
@@ -14,6 +14,7 @@ const APP_SHELL = [
     '/css/editorial.css',
     // JS modular
     '/js/audio.js',
+    '/js/audio-engine.js',
     '/js/acordes-explorer.js',
     '/js/quiz-inversiones.js',
     '/js/datos-armonia.js',

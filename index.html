@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="css/armonia.css">
     <link rel="stylesheet" href="css/dictado-intervalos.css">
     <link rel="stylesheet" href="css/editorial.css">
+    <link rel="modulepreload" href="js/audio-engine.js">
+    <link rel="modulepreload" href="https://esm.sh/superdough@1.3.0">
 </head>
 
 <body>
@@ -117,6 +119,10 @@
 
     <!-- Banner de actualización PWA -->
     <div data-partial="partials/pwa-banner.html"></div>
+
+    <!-- Motor de audio (superdough vía ESM/CDN). Defer por ser type=module;
+         js/audio.js delega aquí en runtime, no en parse-time. -->
+    <script type="module" src="js/audio-engine.js"></script>
 
     <!-- Módulos JS (definen funciones/datos; no tocan el DOM al cargar) -->
     <script src="js/audio.js"></script>

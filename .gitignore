@@ -1,4 +1,5 @@
 firebase-config.js
+firebase-debug.log
 skills-lock.json
 .agents/
 .claude/

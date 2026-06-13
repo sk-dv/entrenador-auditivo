@@ -126,19 +126,10 @@ function buildDegreeRef() {
 // El contexto tonal: Do Mayor arpegiado suave, luego el acorde misterio
 function playDegreeContext(degData, arpInterval) {
     stopAllNodes();
-    const a = ctx(), now = a.currentTime + 0.05;
+    const now = ctx().currentTime + 0.05;
     const step = 0.13;
-    // Contexto: Do-Mi-Sol (gain más bajo para distinguirlo del acorde misterio)
-    [60, 64, 67].forEach((m, i) => {
-        const o = a.createOscillator(), g = a.createGain();
-        o.type = 'sine'; o.frequency.value = mfreq(m);
-        g.gain.setValueAtTime(0, now + i * step);
-        g.gain.linearRampToValueAtTime(0.10, now + i * step + 0.04);
-        g.gain.exponentialRampToValueAtTime(0.001, now + i * step + 0.9);
-        o.connect(g); g.connect(masterOut);
-        o.start(now + i * step); o.stop(now + i * step + 1.0);
-        activeNodes.push(o, g);
-    });
+    // Contexto Do-Mi-Sol (gain más bajo para distinguirlo del acorde misterio)
+    [60, 64, 67].forEach((m, i) => playNote(m, now + i * step, 0.95, 0.10));
     // Pausa + acorde misterio (más fuerte para destacar)
     const offset = now + 3 * step + 0.55;
     degData.midis.forEach((m, i) =>
